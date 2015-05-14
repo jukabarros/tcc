@@ -51,7 +51,7 @@ public class CassandraDAO {
 			this.session.execute(boundStatement.bind(dateOfColect, sulfate, nitrate, id));
 			
 		}catch (Exception e){
-			System.out.println("Erro ao executar a query: "+e.getMessage());
+			System.out.println("Erro ao executar a query: :("+e.getMessage());
 		}
 		this.connCassandra.close();
 		
