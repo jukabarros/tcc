@@ -12,13 +12,13 @@ import config.ConnectCassandra;
  * Cria um keyspace com uma tabela que possui uma unica
  * coluna que vai ser inserida o ID com a sequencia
  */
-public class CreateExperiment1 {
+public class CreateExperiment2 {
 	
 	private ConnectCassandra connCassandra;
 	private Session session;
 	private String query;
 	
-	public CreateExperiment1() {
+	public CreateExperiment2() {
 		super();
 		this.connCassandra = new ConnectCassandra();
 		this.session = null;
@@ -28,9 +28,9 @@ public class CreateExperiment1 {
 	public void createKeyspace(){
 		this.connCassandra.connect();
 		this.session = this.connCassandra.getCluster().connect();
-		System.out.println("Creating keyspace fastaExperiment1...");
+		System.out.println("Creating keyspace fastaExperiment2...");
 		try{
-			this.query = "CREATE KEYSPACE fastaExperiment1 WITH replication = {'class':'SimpleStrategy', 'replication_factor':1};";
+			this.query = "CREATE KEYSPACE fastaExperiment2 WITH replication = {'class':'SimpleStrategy', 'replication_factor':1};";
 			this.session.execute(this.query);
 		}catch (Exception e){
 			System.out.println("Erro ao criar o keyspace: "+e.getMessage());
@@ -43,7 +43,7 @@ public class CreateExperiment1 {
 		this.session = this.connCassandra.getCluster().connect();
 		System.out.println("Creating tables...");
 		try{
-			this.query = "CREATE TABLE fastaExperiment1.fastaCollect (all_data text PRIMARY KEY)";
+			this.query = "CREATE TABLE fastaExperiment2.fastaCollect (id text PRIMARY KEY, seq_dna text)";
 			this.session.execute(this.query);
 		}catch (Exception e){
 			System.out.println("Erro ao criar a tabela: "+e.getMessage());
@@ -54,9 +54,9 @@ public class CreateExperiment1 {
 	public void dropKeyspace(){
 		this.connCassandra.connect();
 		this.session = this.connCassandra.getCluster().connect();
-		System.out.println("Dropping Keyspace fastaExperiment1");
+		System.out.println("Dropping Keyspace fastaExperiment2");
 		try{
-			this.query = "DROP KEYSPACE fastaExperiment1";
+			this.query = "DROP KEYSPACE fastaExperiment2";
 			this.session.execute(this.query);
 		}catch (Exception e){
 			System.out.println("Erro ao limpar a tabela: "+e.getMessage());
@@ -78,7 +78,7 @@ public class CreateExperiment1 {
 
 	public static void main(String[] args) {
 		long startTime = System.currentTimeMillis();
-		CreateExperiment1 create = new CreateExperiment1();
+		CreateExperiment2 create = new CreateExperiment2();
 		create.dropKeyspace();
 		System.out.println("OK");
 		create.createKeyspace();

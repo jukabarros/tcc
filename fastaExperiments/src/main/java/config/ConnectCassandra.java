@@ -13,7 +13,7 @@ public class ConnectCassandra {
 	public Connection connect(){
 		try{
 			this.cluster = Cluster.builder()
-			  .addContactPoint("150.161.11.134")
+			  .addContactPoint("192.168.1.7")
 			  .build();
 			
 		}catch (Exception e){

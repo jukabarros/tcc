@@ -26,7 +26,8 @@ public class SimpleClientConnect {
 	   }
 	public static void main(String[] args) {
 		SimpleClientConnect scc = new SimpleClientConnect();
-		scc.connect("150.161.11.134");
+		scc.connect("192.168.1.7");
+		scc.close();
 
 	}
 

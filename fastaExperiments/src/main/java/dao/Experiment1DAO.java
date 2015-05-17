@@ -27,13 +27,15 @@ public class Experiment1DAO {
 		this.connCassandra.connect();
 		this.session = this.connCassandra.getCluster().connect(KEYSPACE);
 		ResultSet results = session.execute("SELECT * FROM fastaCollect;");
+		int line = 0;
 		System.out.println(String.format("%-100s", "all_data",
 				"--------------------------------------------------------"));
 		for (Row row : results) {
-			System.out.println(String.format("%-100", row.getString("all_data")));
+			line++;
+			System.out.println(String.format("%-100s", row.getString("all_data")));
 		}
 		System.out.println();
-		
+		System.out.println("******* NUM OF LINES: "+line);
 		this.connCassandra.close();
 	}
 	
