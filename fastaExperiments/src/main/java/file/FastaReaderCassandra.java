@@ -8,23 +8,25 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import dao.Experiment2DAO;
+import dao.CassandraExperiment2DAO;
 
 public class FastaReaderCassandra {
 	
 	public int lines;
 	
-	private Experiment2DAO dao;
+	private CassandraExperiment2DAO dao;
 	
 	
 	public FastaReaderCassandra() {
 		super();
 		this.lines = 0;
-		this.dao = new Experiment2DAO();
+		this.dao = new CassandraExperiment2DAO();
 	}
 	
 	/**
 	 * Ler todos os Fasta de um repositorio especifico
+	 * Para cada fasta, sera criada uma tabela com o conteudo do arquivo 
+	 * e sera registrado na tabela 'fasta_info' o nome do arquivo e suas caracteristicas
 	 * @param fastaDirectory
 	 */
 	public void readFastaDirectory(String fastaDirectory){
@@ -36,7 +38,7 @@ public class FastaReaderCassandra {
 				System.out.println("Lendo o arquivo: "+file.getName());
 				if (file.getName().endsWith(".fasta") || file.getName().endsWith(".fa")){
 					this.readFastaFile(file.getAbsolutePath());
-					System.out.println("OK");
+					System.out.println("** Fim da leitura do arquivo: "+file.getName());
 				}else {
 					System.out.println("*** Erro "+file.getName()+ " não é um arquivo .fasta");
 				}

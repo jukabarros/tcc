@@ -50,6 +50,23 @@ public class CassandraCreateExperiment2 {
 		this.connCassandra.close();
 	}
 	
+	/*
+	 * Tabela que recebera todas informacoes do arquivo fasta,
+	 * sera usada para apontar a tabela que contem todo conteudo do arquivo
+	 */
+	public void createTableFastaInfo(){
+		this.connCassandra.connect();
+		this.session = this.connCassandra.getCluster().connect();
+		System.out.println("Creating table fasta_info");
+		try{
+			this.query = "CREATE TABLE '"+this.keyspace+"'.fastaInfo (fasta_name text PRIMARY KEY, num_line bigint)";
+			this.session.execute(this.query);
+		}catch (Exception e){
+			System.out.println("Erro ao criar a tabela: "+e.getMessage());
+		}
+		this.connCassandra.close();
+	}
+	
 	public void createTables(){
 		this.connCassandra.connect();
 		this.session = this.connCassandra.getCluster().connect();
@@ -102,8 +119,10 @@ public class CassandraCreateExperiment2 {
 		System.out.println("OK");
 		create.createKeyspace();
 		System.out.println("OK");
-		create.createTables();
+		create.createTableFastaInfo();
 		System.out.println("OK");
+//		create.createTables();
+//		System.out.println("OK");
 		long endTime = System.currentTimeMillis();
 		
 		long totalTime = endTime - startTime;

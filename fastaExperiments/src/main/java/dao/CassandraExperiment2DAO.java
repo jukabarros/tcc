@@ -8,14 +8,14 @@ import com.datastax.driver.core.Session;
 
 import config.ConnectCassandra;
 
-public class Experiment2DAO {
+public class CassandraExperiment2DAO {
 	
 	private ConnectCassandra connCassandra;
 	private Session session;
 	private String query;
 	private final String KEYSPACE = "experiment2";
 	
-	public Experiment2DAO() {
+	public CassandraExperiment2DAO() {
 		super();
 		// TODO Auto-generated constructor stub
 		this.connCassandra = new ConnectCassandra();

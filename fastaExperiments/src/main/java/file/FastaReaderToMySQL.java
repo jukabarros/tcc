@@ -33,10 +33,10 @@ public class FastaReaderToMySQL {
 		File[] fList = directory.listFiles();
 		for (File file : fList){
 			if (file.isFile()){
-				System.out.println("Lendo o arquivo: "+file.getName());
+				System.out.println("** Lendo o arquivo: "+file.getName());
 				if (file.getName().endsWith(".fasta") || file.getName().endsWith(".fa")){
 					this.readFastaFile(file.getAbsolutePath());
-					System.out.println("OK");
+					System.out.println("** Fim da leitura do arquivo: "+file.getName());
 				}else {
 					System.out.println("*** Erro "+file.getName()+ " não é um arquivo .fasta");
 				}

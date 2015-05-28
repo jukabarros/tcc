@@ -4,7 +4,7 @@ import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Host;
 import com.datastax.driver.core.Metadata;
 
-public class SimpleClientConnect {
+public class SimpleCassandraClientConnect {
 
 	private Cluster cluster;
 	private Metadata metadata;
@@ -26,7 +26,7 @@ public class SimpleClientConnect {
 		cluster.close();
 	}
 	public static void main(String[] args) {
-		SimpleClientConnect scc = new SimpleClientConnect();
+		SimpleCassandraClientConnect scc = new SimpleCassandraClientConnect();
 		scc.connect("150.161.11.134");
 		scc.close();
 
