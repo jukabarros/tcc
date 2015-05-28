@@ -7,7 +7,9 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
+import config.ReadProperties;
 import dao.CassandraExperiment2DAO;
 
 public class FastaReaderCassandra {
@@ -28,8 +30,9 @@ public class FastaReaderCassandra {
 	 * Para cada fasta, sera criada uma tabela com o conteudo do arquivo 
 	 * e sera registrado na tabela 'fasta_info' o nome do arquivo e suas caracteristicas
 	 * @param fastaDirectory
+	 * @throws IOException 
 	 */
-	public void readFastaDirectory(String fastaDirectory){
+	public void readFastaDirectory(String fastaDirectory) throws IOException{
 		File directory = new File(fastaDirectory);
 		//get all the files from a directory
 		File[] fList = directory.listFiles();
@@ -40,7 +43,7 @@ public class FastaReaderCassandra {
 					this.readFastaFile(file.getAbsolutePath());
 					System.out.println("** Fim da leitura do arquivo: "+file.getName());
 				}else {
-					System.out.println("*** Erro "+file.getName()+ " não é um arquivo .fasta");
+					System.out.println("*** Atenção: "+file.getName()+ " não é um arquivo .fasta");
 				}
 			}
 		}
@@ -48,17 +51,19 @@ public class FastaReaderCassandra {
 	/**
 	 * Ler um fasta especifico e insere no Cassandra
 	 * @param fastaFile
+	 * @throws IOException 
 	 */
-	public void readFastaFile(String fastaFile){
+	public void readFastaFile(String fastaFile) throws IOException{
 		BufferedReader br = null;
 		String line = "";
 		String fastaSplitBy = "\n";
-	 
+		Properties prop = ReadProperties.getProp();
+		int rssSize = Integer.parseInt(prop.getProperty("srr.quantity"))*2;
 		int numOfLine = 0;
 		try {
 			br = new BufferedReader(new FileReader(fastaFile));
-			String id = null;
-			String seqDNA = null;
+			String id = "";
+			String seqDNA = "";
 			System.out.println("**** Processando o arquivo fasta");
 			List<String> allQuery = new ArrayList<String>();
 			while ((line = br.readLine()) != null) {
@@ -68,21 +73,19 @@ public class FastaReaderCassandra {
 				if (numOfLine%2 == 1){
 					id += brokenFasta[0];
 				}else if (numOfLine > 1){
-					seqDNA = brokenFasta[0];
+					seqDNA += brokenFasta[0];
 				}
-				if (numOfLine%2 == 0){
+				if (numOfLine%rssSize == 0){
 					String query = "INSERT INTO fastaCollect (id, seq_dna) VALUES ('"+id+"', '"+seqDNA+"');";
 					allQuery.add(query);
 					System.out.println("IDs: "+id);
 					id = null;
 					seqDNA = null;
+					break;
 				}
-//				if (numOfLine%1000==0){
-//					System.out.println("Numero de registros inseridos: "+this.lines/2);
-//				}
 			}
-			System.out.println("**** Inserindo no Banco de Dados...");
-//			this.insertAllData(allQuery);
+			System.out.println("**** Inserindo no Cassandra...");
+			this.insertAllData(allQuery);
 	 
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();

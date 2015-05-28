@@ -28,7 +28,7 @@ public class Application {
 		String bd = prop.getProperty("database").toUpperCase();
 		long startTime = System.currentTimeMillis();
 		if(bd.equals("CASSANDRA")){
-//			CassandraCreateExperiment2.main(null);
+			CassandraCreateExperiment2.main(null);
 			FastaReaderCassandra frToCassandra = new FastaReaderCassandra();
 			frToCassandra.readFastaDirectory(fastaDirectory);
 			//			Experiment2DAO dao = new Experiment2DAO();
