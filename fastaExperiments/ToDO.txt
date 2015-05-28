@@ -1,0 +1,13 @@
+FAZER 28/05/2015:
+
+1. Criar esquema relacional para o MySQL
+
+2. Criar implementacao dinamica para o Cassandra
+
+3. Começar implementacao para o mongoDB
+
+4. Melhorar a execucao do Main com Argumentos
+
+5. Verificar os parametros no .properties
+
+6. 

@@ -109,6 +109,7 @@ public class CassandraCreateExperiment2 {
 	/*
 	 * TO DO
 	 * Fazer o "if exists" nos truncates e nos drops
+	 * Fazer testes lendo do arquivo properties
 	 */
 	public static void main(String[] args) throws IOException {
 		long startTime = System.currentTimeMillis();

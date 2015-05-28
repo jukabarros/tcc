@@ -50,7 +50,7 @@ public class Application {
 
 		long totalTime = endTime - startTime;
 		NumberFormat formatter = new DecimalFormat("#0.00");
-		System.out.print("\n******** TEMPO DE EXECUÇÃO: " + formatter.format(totalTime / 1000d) + " seconds");
+		System.out.print("\n******** Tempo de execução: " + formatter.format(totalTime / 1000d) + " segundos");
 	}
 
 }

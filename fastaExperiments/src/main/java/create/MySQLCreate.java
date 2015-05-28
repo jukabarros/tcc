@@ -17,8 +17,8 @@ public class MySQLCreate {
 	public void createTable() throws SQLException{
 		Connection conectar = new ConnectMySQL().connectMysql();
 		System.out.println("Creating table fasta_collect");
-		query = "CREATE TABLE fasta_collect (id VARCHAR(50) PRIMARY KEY, seq_dna VARCHAR(52));";
-		PreparedStatement queryExec = conectar.prepareStatement(query);
+		this.query = "CREATE TABLE IF NOT EXISTS fasta_collect (id VARCHAR(50) PRIMARY KEY, seq_dna VARCHAR(52));";
+		PreparedStatement queryExec = conectar.prepareStatement(this.query);
 		queryExec.execute();
 		queryExec.close();
 	}
@@ -26,8 +26,8 @@ public class MySQLCreate {
 	public void truncateTable() throws SQLException{
 		Connection conectar = new ConnectMySQL().connectMysql();
 		System.out.println("Truncate table fasta_collect");
-		query = "TRUNCATE fasta_collect;";
-		PreparedStatement queryExec = conectar.prepareStatement(query);
+		this.query = "TRUNCATE fasta_collect;";
+		PreparedStatement queryExec = conectar.prepareStatement(this.query);
 		queryExec.execute();
 		queryExec.close();
 	}
