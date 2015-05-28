@@ -41,8 +41,8 @@ public class CassandraCreateExperiment2 {
 		this.session = this.connCassandra.getCluster().connect();
 		try{
 			System.out.println("Creating keyspace "+this.keyspace);
-			this.query = "CREATE KEYSPACE '"+this.keyspace+"' WITH replication = {'class':'SimpleStrategy', "
-					+ "'replication_factor':'"+this.replicationFactor+"'};";
+			this.query = "CREATE KEYSPACE IF NOT EXISTS "+this.keyspace+" WITH replication = {'class':'SimpleStrategy',"
+					+ " 'replication_factor':"+this.replicationFactor+"};";
 			this.session.execute(this.query);
 		}catch (Exception e){
 			System.out.println("Erro ao criar o keyspace: "+e.getMessage());
@@ -59,7 +59,7 @@ public class CassandraCreateExperiment2 {
 		this.session = this.connCassandra.getCluster().connect();
 		System.out.println("Creating table fasta_info");
 		try{
-			this.query = "CREATE TABLE '"+this.keyspace+"'.fastaInfo (fasta_name text PRIMARY KEY, num_line bigint)";
+			this.query = "CREATE TABLE IF NOT EXISTS "+this.keyspace+".fastaInfo (fasta_name text PRIMARY KEY, num_line bigint)";
 			this.session.execute(this.query);
 		}catch (Exception e){
 			System.out.println("Erro ao criar a tabela: "+e.getMessage());
@@ -72,7 +72,8 @@ public class CassandraCreateExperiment2 {
 		this.session = this.connCassandra.getCluster().connect();
 		System.out.println("Creating tables...");
 		try{
-			this.query = "CREATE TABLE '"+this.keyspace+"'.fastaCollect (id text PRIMARY KEY, seq_dna text)";
+			this.query = "CREATE TABLE IF NOT EXISTS "+this.keyspace+".fastaCollect "
+					+ "(id text PRIMARY KEY, seq_dna text)";
 			this.session.execute(this.query);
 		}catch (Exception e){
 			System.out.println("Erro ao criar a tabela: "+e.getMessage());
@@ -85,7 +86,7 @@ public class CassandraCreateExperiment2 {
 		this.session = this.connCassandra.getCluster().connect();
 		System.out.println("Dropping Keyspace "+this.keyspace);
 		try{
-			this.query = "DROP KEYSPACE '"+this.keyspace+"'";
+			this.query = "DROP KEYSPACE IF EXISTS "+this.keyspace+"";
 			this.session.execute(this.query);
 		}catch (Exception e){
 			System.out.println("Erro ao deletar o keyspace: "+e.getMessage());
@@ -98,7 +99,7 @@ public class CassandraCreateExperiment2 {
 		this.session = this.connCassandra.getCluster().connect();
 		try{
 			System.out.println("Cleaning table: "+table);
-			this.query = "TRUNCATE '"+this.keyspace+"'."+table;
+			this.query = "TRUNCATE "+this.keyspace+"."+table;
 			this.session.execute(this.query);
 		}catch (Exception e){
 			System.out.println("Erro ao limpar a tabela: "+e.getMessage());
@@ -106,11 +107,6 @@ public class CassandraCreateExperiment2 {
 		this.connCassandra.close();
 	}
 
-	/*
-	 * TO DO
-	 * Fazer o "if exists" nos truncates e nos drops
-	 * Fazer testes lendo do arquivo properties
-	 */
 	public static void main(String[] args) throws IOException {
 		long startTime = System.currentTimeMillis();
 		CassandraCreateExperiment2 create = new CassandraCreateExperiment2();
@@ -119,16 +115,16 @@ public class CassandraCreateExperiment2 {
 		create.dropKeyspace();
 		System.out.println("OK");
 		create.createKeyspace();
-		System.out.println("OK");
-		create.createTableFastaInfo();
-		System.out.println("OK");
-//		create.createTables();
 //		System.out.println("OK");
+//		create.createTableFastaInfo();
+		System.out.println("OK");
+		create.createTables();
+		System.out.println("OK");
 		long endTime = System.currentTimeMillis();
 		
 		long totalTime = endTime - startTime;
 		NumberFormat formatter = new DecimalFormat("#0.00");
-		System.out.print("******** EXECUTION TIME: " + formatter.format(totalTime / 1000d) + " seconds");
+		System.out.print("******** EXECUTION TIME: " + formatter.format(totalTime / 1000d) + " segundos\n");
 
 	}
 

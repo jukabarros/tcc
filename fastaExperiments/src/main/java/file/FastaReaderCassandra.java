@@ -66,14 +66,14 @@ public class FastaReaderCassandra {
 				this.lines++;
 				String[] brokenFasta = line.split(fastaSplitBy);
 				if (numOfLine%2 == 1){
-					id = brokenFasta[0];
+					id += brokenFasta[0];
 				}else if (numOfLine > 1){
 					seqDNA = brokenFasta[0];
 				}
 				if (numOfLine%2 == 0){
-//					dao.insert(id, seqDNA);
 					String query = "INSERT INTO fastaCollect (id, seq_dna) VALUES ('"+id+"', '"+seqDNA+"');";
 					allQuery.add(query);
+					System.out.println("IDs: "+id);
 					id = null;
 					seqDNA = null;
 				}
@@ -82,7 +82,7 @@ public class FastaReaderCassandra {
 //				}
 			}
 			System.out.println("**** Inserindo no Banco de Dados...");
-			this.insertAllData(allQuery);
+//			this.insertAllData(allQuery);
 	 
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
