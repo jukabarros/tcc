@@ -1,19 +1,25 @@
 package config;
 
 import java.sql.Connection;
+import java.util.Properties;
 
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Host;
 import com.datastax.driver.core.Metadata;
+import com.datastax.driver.core.Session;
 
 public class ConnectCassandra {
+	
 	private Connection conn;
 	private Cluster cluster;
+	private Session session;
 	
 	public Connection connect(){
 		try{
+			Properties prop = ReadProperties.getProp();
+			String node = prop.getProperty("cassandra.node");
 			this.cluster = Cluster.builder()
-			  .addContactPoint("192.168.1.7")
+			  .addContactPoint(node)
 			  .build();
 			
 		}catch (Exception e){
@@ -41,6 +47,14 @@ public class ConnectCassandra {
 	// GET AND SET
 	public Cluster getCluster() {
 		return cluster;
+	}
+
+	public Session getSession() {
+		return session;
+	}
+
+	public void setSession(Session session) {
+		this.session = session;
 	}
 
 }
