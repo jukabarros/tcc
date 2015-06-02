@@ -8,8 +8,10 @@ import java.util.Properties;
 
 import config.ReadProperties;
 import create.CassandraCreateExperiment2;
+import create.MongoDBCreate;
 import create.MySQLCreate;
-import file.FastaReaderCassandra;
+import file.FastaReaderToCassandra;
+import file.FastaReaderToMongoDB;
 import file.FastaReaderToMySQL;
 
 public class Application {
@@ -29,15 +31,17 @@ public class Application {
 		long startTime = System.currentTimeMillis();
 		if(bd.equals("CASSANDRA")){
 			CassandraCreateExperiment2.main(null);
-			FastaReaderCassandra frToCassandra = new FastaReaderCassandra();
+			FastaReaderToCassandra frToCassandra = new FastaReaderToCassandra();
 			frToCassandra.readFastaDirectory(fastaDirectory);
 			//			Experiment2DAO dao = new Experiment2DAO();
 			//			dao.findByID(">1305_150_799_F3");
 			//			dao.selectAll();
 		
 		}else if (bd.equals("MONGODB")){
-			System.out.println("Vc escolheu MongoDB :D");
-
+			MongoDBCreate.main(null);
+			FastaReaderToMongoDB frToMongo = new FastaReaderToMongoDB();
+			frToMongo.readFastaDirectory(fastaDirectory);
+			
 		}else if (bd.equals("MYSQL")){
 			MySQLCreate.main(null);
 			FastaReaderToMySQL frToMySQL = new FastaReaderToMySQL();

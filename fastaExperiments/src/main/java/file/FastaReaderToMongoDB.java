@@ -5,81 +5,83 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Properties;
 
-import dao.MySQLDAO;
+import config.ReadProperties;
+import dao.MongoDBDAO;
 
-public class FastaReaderToMySQL {
+public class FastaReaderToMongoDB {
 	
 	public int lines;
 	
-	private MySQLDAO dao;
+	private MongoDBDAO dao;
 	
 	
-	public FastaReaderToMySQL() {
+	public FastaReaderToMongoDB() throws IOException {
 		super();
 		this.lines = 0;
-		this.dao = new MySQLDAO();
+		this.dao = new MongoDBDAO();
 	}
 	
 	/**
 	 * Ler todos os Fasta de um repositorio especifico
+	 * Para cada fasta, sera criada uma tabela com o conteudo do arquivo 
+	 * e sera registrado na tabela 'fasta_info' o nome do arquivo e suas caracteristicas
 	 * @param fastaDirectory
+	 * @throws IOException 
 	 */
-	public void readFastaDirectory(String fastaDirectory){
+	public void readFastaDirectory(String fastaDirectory) throws IOException{
 		File directory = new File(fastaDirectory);
 		//get all the files from a directory
 		File[] fList = directory.listFiles();
 		for (File file : fList){
 			if (file.isFile()){
-				System.out.println("** Lendo o arquivo: "+file.getName());
+				System.out.println("Lendo o arquivo: "+file.getName());
 				if (file.getName().endsWith(".fasta") || file.getName().endsWith(".fa")){
 					this.readFastaFile(file.getAbsolutePath());
 					System.out.println("** Fim da leitura do arquivo: "+file.getName());
 				}else {
-					System.out.println("*** Erro "+file.getName()+ " não é um arquivo .fasta");
+					System.out.println("*** Atenção: "+file.getName()+ " não é um arquivo .fasta");
 				}
 			}
 		}
 	}
 	/**
-	 * Ler um Fasta especifico e insere no Cassandra
+	 * Ler um fasta especifico e insere no Cassandra
 	 * @param fastaFile
+	 * @throws IOException 
 	 */
-	public void readFastaFile(String fastaFile){
+	public void readFastaFile(String fastaFile) throws IOException{
 		BufferedReader br = null;
 		String line = "";
 		String fastaSplitBy = "\n";
-	 
+		Properties prop = ReadProperties.getProp();
+		int rssSize = Integer.parseInt(prop.getProperty("srr.quantity"))*2;
 		int numOfLine = 0;
 		try {
 			br = new BufferedReader(new FileReader(fastaFile));
 			String id = "";
 			String seqDNA = "";
 			System.out.println("**** Processando o arquivo fasta");
-			List<String> allQuery = new ArrayList<String>();
 			while ((line = br.readLine()) != null) {
 				numOfLine++;
 				this.lines++;
 				String[] brokenFasta = line.split(fastaSplitBy);
 				if (numOfLine%2 == 1){
-					id = brokenFasta[0];
+					id += brokenFasta[0];
 				}else if (numOfLine > 1){
-					seqDNA = brokenFasta[0];
+					seqDNA += brokenFasta[0];
 				}
-				if (numOfLine%2 == 0){
-					String query = "INSERT INTO fasta_collect (id, seq_dna) VALUES ('"+id+"', '"+seqDNA+"');";
-					allQuery.add(query);
+				if (numOfLine%rssSize == 0){
+					this.dao.insertData(id, seqDNA);
 					id = "";
 					seqDNA = "";
 				}
-//				if (numOfLine%1000==0){
-//					System.out.println("Numero de registros inseridos: "+this.lines/2);
-//				}
+				if (this.lines%2000==0){
+					System.out.println("*** Número de registros inseridos: "+this.lines/2);
+				}
 			}
-			System.out.println("**** Inserindo no MySQL...");
-			this.insertAllData(allQuery);
+			System.out.println("\n*** Número Total de registros inseridos: "+this.lines/2);
 	 
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
@@ -95,21 +97,5 @@ public class FastaReaderToMySQL {
 			}
 		}
 	  }
-	
-	private void insertAllData(List<String> allData){
-		try{
-			this.dao.beforeExecuteQuery();
-			for (int i = 0; i < allData.size(); i++) {
-				this.dao.executeQuery(allData.get(i));
-				if (i%1000 == 0){
-					System.out.println("Numero de registros inseridos: "+i);
-				}
-			}
-			this.dao.afterExecuteQuery();
-			System.out.println("**** Total de linhas inseridas no Banco: "+this.lines/2);
-		}catch (Exception e){
-			System.out.println("Erro ao executar a query :( \n"+e.getMessage());
-		}
-	}
 
 }

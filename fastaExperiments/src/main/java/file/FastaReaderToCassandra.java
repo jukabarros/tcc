@@ -12,14 +12,14 @@ import java.util.Properties;
 import config.ReadProperties;
 import dao.CassandraExperiment2DAO;
 
-public class FastaReaderCassandra {
+public class FastaReaderToCassandra {
 	
 	public int lines;
 	
 	private CassandraExperiment2DAO dao;
 	
 	
-	public FastaReaderCassandra() {
+	public FastaReaderToCassandra() {
 		super();
 		this.lines = 0;
 		this.dao = new CassandraExperiment2DAO();
@@ -79,8 +79,8 @@ public class FastaReaderCassandra {
 					String query = "INSERT INTO fastaCollect (id, seq_dna) VALUES ('"+id+"', '"+seqDNA+"');";
 					allQuery.add(query);
 					System.out.println("IDs: "+id);
-					id = null;
-					seqDNA = null;
+					id = "";
+					seqDNA = "";
 					break;
 				}
 			}

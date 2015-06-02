@@ -28,11 +28,12 @@ public class ConnectMongoDB {
 	 * Conecta com o Mongo e aponta para a colecao,
 	 * caso ela nao exista, o mongo por padrao cria uma nova.
 	 */
-	public DBCollection connectToMongoDB(String collection) throws IOException{
+	public DBCollection connectToMongoDB() throws IOException{
 		String host = this.prop.getProperty("mongodb.host");
 		int port = Integer.parseInt(this.prop.getProperty("mongodb.port"));
 		this.database = prop.getProperty("mongodb.db");
 		this.mongo = new MongoClient(host, port);
+		String collection = this.prop.getProperty("mongodb.collection");
 		
 		DB db = this.mongo.getDB(this.database);
 		DBCollection dbCollection = db.getCollection(collection);
@@ -44,7 +45,7 @@ public class ConnectMongoDB {
 		try {
 
 			ConnectMongoDB mongoCon = new ConnectMongoDB();
-			DBCollection table = mongoCon.connectToMongoDB("testMongo");
+			DBCollection table = mongoCon.connectToMongoDB();
 
 			/**** Insert ****/
 			// create a document to store key and value
