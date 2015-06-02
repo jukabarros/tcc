@@ -37,6 +37,7 @@ public class MongoDBCreate {
 	
 	public static void main(String[] args) throws IOException {
 		try {
+			System.out.println("*** Creating MongoDB Test");
 			Properties prop = ReadProperties.getProp();
 			String collection = prop.getProperty("mongodb.collection");
 			

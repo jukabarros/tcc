@@ -31,7 +31,7 @@ public class MongoDBDAO {
 		this.dbCollection.insert(document);
 	}
 	
-	public void findData(String id) throws IOException{
+	public void findByID(String id) throws IOException{
 		/**** Find and display ****/
 		BasicDBObject searchQuery = new BasicDBObject();
 		searchQuery.put("id", id);
