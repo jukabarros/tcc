@@ -41,7 +41,7 @@ public class CassandraExperiment2DAO {
 		}
 	}
 	
-	public void selectAll(){
+	public void findAll(String outputfile){
 		this.beforeExecuteQuery();
 		this.query = "SELECT * FROM fastaCollect;";
 		ResultSet results = session.execute(this.query);

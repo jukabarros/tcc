@@ -22,6 +22,7 @@ public class MySQLCreate {
 	
 	public void createDatabase() throws SQLException{
 		try{
+			// Conexao vai vazio pois o banco ainda nao foi criado
 			Connection conectar = new ConnectMySQL().connectMysql("");
 			System.out.println("Creating Database "+this.database);
 			this.query = "CREATE DATABASE IF NOT EXISTS "+this.database+";";
@@ -77,6 +78,7 @@ public class MySQLCreate {
 		}
 	}
 	
+	// Prepara o ambiente do MySQL
 	public static void main(String[] args) throws SQLException, IOException {
 		MySQLCreate mc = new MySQLCreate();
 		

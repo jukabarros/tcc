@@ -20,7 +20,11 @@ public class MySQLDAO {
 		this.query = null;
 		this.conn = null;
 	}
-
+	
+	/*
+	 * Metodo before e after sao usados para
+	 * abrir e fechar conexao
+	 */
 	public void beforeExecuteQuery(){
 		Properties prop;
 		try {
@@ -44,18 +48,25 @@ public class MySQLDAO {
 
 	public void insertData(String id, String seqDna) throws SQLException{
 		try{
+			beforeExecuteQuery();
+			
 			query = "INSERT INTO fasta_collect (id, seq_dna) VALUES (?,?);";
 			PreparedStatement queryExec = this.conn.prepareStatement(query);
 			queryExec.setString(1, id);
 			queryExec.setString(2, seqDna);
 			queryExec.execute();
 			queryExec.close();
+			
+			afterExecuteQuery();
 		}catch (Exception e){
 			System.out.println("Erro ao inserir o registro: :( \n"+e.getMessage());
 		}
 	}
 	
-	public void findAll() throws SQLException{
+	/*
+	 * outputfile eh o arquivo fasta que vai ser gerado apos a consulta (TO DO)
+	 */
+	public void findAll(String outputfile) throws SQLException{
 		beforeExecuteQuery();
 		
 		query = "SELECT * FROM fasta_collect;";
@@ -71,7 +82,7 @@ public class MySQLDAO {
 		
 		afterExecuteQuery();
 		System.out.println();
-		System.out.println("******* NUM OF LINES: "+line);
+		System.out.println("***** Quantidade de registros: "+line);
 		
 	}
 	
@@ -92,7 +103,7 @@ public class MySQLDAO {
 		
 		afterExecuteQuery();
 		System.out.println();
-		System.out.println("******* NUM OF LINES: "+line);
+		System.out.println("***** Quantidade de linhas: "+line);
 		
 	}
 

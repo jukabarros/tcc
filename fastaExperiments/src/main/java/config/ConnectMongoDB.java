@@ -68,10 +68,10 @@ public class ConnectMongoDB {
 			/**** Update ****/
 			// search document where name="juka" and update it with new values
 			BasicDBObject query = new BasicDBObject();
-			query.put("name", "mkyong");
+			query.put("name", "juka");
 
 			BasicDBObject newDocument = new BasicDBObject();
-			newDocument.put("name", "mkyong-updated");
+			newDocument.put("name", "juka-updated");
 
 			BasicDBObject updateObj = new BasicDBObject();
 			updateObj.put("$set", newDocument);
@@ -79,7 +79,7 @@ public class ConnectMongoDB {
 			table.update(query, updateObj);
 
 			/**** Find and display ****/
-			BasicDBObject searchQuery2 = new BasicDBObject().append("name", "mkyong-updated");
+			BasicDBObject searchQuery2 = new BasicDBObject().append("name", "juka-updated");
 
 			DBCursor cursor2 = table.find(searchQuery2);
 

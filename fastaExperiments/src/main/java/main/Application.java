@@ -26,15 +26,34 @@ public class Application {
 	 * 2 - Arquivo de Saida
 	 */
 	public static void main(String[] args) throws IOException, SQLException {
+		String fastaDirectory = null;
+		String outputFile = null;
+		
 		Properties prop = ReadProperties.getProp();
-		String fastaDirectory = args[0]; 
-		if (fastaDirectory.equals(null)){
+		
+		int numOfArgs = args.length;
+		switch (numOfArgs) {
+		case 0:
+			System.out.println("** Capturando os parametros no arquivo properties");
 			fastaDirectory = prop.getProperty("fasta.directory");
+			outputFile = prop.getProperty("output.file");
+			break;
+		case 1:
+			fastaDirectory = args[0];
+			outputFile = prop.getProperty("output.file");
+			break;
+		default:
+			fastaDirectory = args[0];
+			outputFile = args[1];
+			break;
 		}
+
 		String bd = prop.getProperty("database").toUpperCase();
 		String cleanData = prop.getProperty("clean.data").toUpperCase();
 		String idSeqDNA = prop.getProperty("id.seqDna");
+		
 		long startTime = System.currentTimeMillis();
+		
 		if(bd.equals("CASSANDRA")){
 			if(cleanData.equals("YES")){
 				CassandraCreateExperiment2.main(null);
@@ -42,7 +61,11 @@ public class Application {
 				frToCassandra.readFastaDirectory(fastaDirectory);
 			}else{
 				CassandraExperiment2DAO dao = new CassandraExperiment2DAO();
-				dao.findByID(idSeqDNA);
+				if (idSeqDNA.equals("0")){
+					dao.findAll(outputFile);
+				}else{
+					dao.findByID(idSeqDNA);
+				}
 			}
 		
 		}else if (bd.equals("MONGODB")){
@@ -52,7 +75,11 @@ public class Application {
 				frToMongo.readFastaDirectory(fastaDirectory);
 			}else{
 				MongoDBDAO dao = new MongoDBDAO();
-				dao.findByID(idSeqDNA);
+				if (idSeqDNA.equals("0")){
+					dao.findAll(outputFile);
+				}else{
+					dao.findByID(idSeqDNA);
+				}
 			}
 			
 		}else if (bd.equals("MYSQL")){
@@ -62,7 +89,11 @@ public class Application {
 				frToMySQL.readFastaDirectory(fastaDirectory);
 			}else{
 				MySQLDAO dao = new MySQLDAO();
-				dao.findByID(idSeqDNA);
+				if (idSeqDNA.equals("0")){
+					dao.findAll(outputFile);
+				}else{
+					dao.findByID(idSeqDNA);
+				}
 			}
 			
 		}  else{
@@ -73,7 +104,7 @@ public class Application {
 
 		long totalTime = endTime - startTime;
 		NumberFormat formatter = new DecimalFormat("#0.00");
-		System.out.print("\n******** Tempo de execução: " + formatter.format(totalTime / 1000d) + " segundos");
+		System.out.print("\n******** Tempo de execução: " + formatter.format(totalTime / 1000d) + " segundos \n");
 	}
 
 }

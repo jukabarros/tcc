@@ -1,13 +1,13 @@
 FAZER 28/05/2015:
 
-1. Criar esquema relacional para o MySQL
+1. Criar esquema relacional para o MySQL 
 
 2. Criar implementacao dinamica para o Cassandra
 
-3. Começar implementacao para o mongoDB
+3. Começar implementacao para o mongoDB (OK)
 
-4. Melhorar a execucao do Main com Argumentos
+4. Melhorar a execucao do Main com Argumentos (OK)
 
-5. Verificar os parametros no .properties
+5. Verificar os parametros no .properties (OK)
 
-6. 
+6. Implementar o arquivo fasta de Saida, ver a questao da SRRs

@@ -8,6 +8,7 @@ public class ConnectMySQL {
 	
 	private Connection conn;
 	
+	// Recebe o banco a ser criado como parametro, que vem do arquivo properties
 	public Connection connectMysql(String database){
 		try{
 			Properties prop = ReadProperties.getProp();
