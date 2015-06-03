@@ -1,11 +1,14 @@
 package dao;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Properties;
 
 import config.ConnectMySQL;
+import config.ReadProperties;
 
 public class MySQLDAO {
 	
@@ -19,7 +22,14 @@ public class MySQLDAO {
 	}
 
 	public void beforeExecuteQuery(){
-		this.conn = new ConnectMySQL().connectMysql();
+		Properties prop;
+		try {
+			prop = ReadProperties.getProp();
+			String database = prop.getProperty("mysql.db"); 
+			this.conn = new ConnectMySQL().connectMysql(database);
+		} catch (IOException e) {
+			System.out.println("Erro na execução da query: "+e.getMessage());
+		}
 	}
 	
 	public void afterExecuteQuery() throws SQLException{
@@ -46,6 +56,8 @@ public class MySQLDAO {
 	}
 	
 	public void findAll() throws SQLException{
+		beforeExecuteQuery();
+		
 		query = "SELECT * FROM fasta_collect;";
 		PreparedStatement queryExec = this.conn.prepareStatement(query);
 		ResultSet results = queryExec.executeQuery();
@@ -56,12 +68,16 @@ public class MySQLDAO {
 			System.out.println(String.format("%-30s\t%-70s", results.getString(1), results.getString(2)));
 			line++;
 		}
+		
+		afterExecuteQuery();
 		System.out.println();
 		System.out.println("******* NUM OF LINES: "+line);
 		
 	}
 	
 	public void findByID(String id) throws SQLException{
+		beforeExecuteQuery();
+		
 		query = "SELECT * FROM fasta_collect WHERE id = ?";
 		PreparedStatement queryExec = this.conn.prepareStatement(query);
 		queryExec.setString(1, id);
@@ -73,6 +89,8 @@ public class MySQLDAO {
 			System.out.println(String.format("%-30s\t%-70s", results.getString(1), results.getString(2)));
 			line++;
 		}
+		
+		afterExecuteQuery();
 		System.out.println();
 		System.out.println("******* NUM OF LINES: "+line);
 		

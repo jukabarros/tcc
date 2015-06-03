@@ -27,10 +27,13 @@ public class Application {
 	 */
 	public static void main(String[] args) throws IOException, SQLException {
 		Properties prop = ReadProperties.getProp();
-		//String fastaDirectory = args[0]; 
-		String fastaDirectory = prop.getProperty("fasta.directory");
+		String fastaDirectory = args[0]; 
+		if (fastaDirectory.equals(null)){
+			fastaDirectory = prop.getProperty("fasta.directory");
+		}
 		String bd = prop.getProperty("database").toUpperCase();
 		String cleanData = prop.getProperty("clean.data").toUpperCase();
+		String idSeqDNA = prop.getProperty("id.seqDna");
 		long startTime = System.currentTimeMillis();
 		if(bd.equals("CASSANDRA")){
 			if(cleanData.equals("YES")){
@@ -39,7 +42,7 @@ public class Application {
 				frToCassandra.readFastaDirectory(fastaDirectory);
 			}else{
 				CassandraExperiment2DAO dao = new CassandraExperiment2DAO();
-				dao.findByID(">1305_150_799_F3");
+				dao.findByID(idSeqDNA);
 			}
 		
 		}else if (bd.equals("MONGODB")){
@@ -49,7 +52,7 @@ public class Application {
 				frToMongo.readFastaDirectory(fastaDirectory);
 			}else{
 				MongoDBDAO dao = new MongoDBDAO();
-				dao.findByID(">1303_37_58_F3");
+				dao.findByID(idSeqDNA);
 			}
 			
 		}else if (bd.equals("MYSQL")){
@@ -59,7 +62,7 @@ public class Application {
 				frToMySQL.readFastaDirectory(fastaDirectory);
 			}else{
 				MySQLDAO dao = new MySQLDAO();
-				dao.findByID(">1303_37_58_F3");
+				dao.findByID(idSeqDNA);
 			}
 			
 		}  else{
