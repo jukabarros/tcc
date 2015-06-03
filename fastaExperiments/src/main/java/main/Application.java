@@ -23,7 +23,7 @@ import file.FastaReaderToMySQL;
 import file.OutputFasta;
 
 public class Application {
-	
+
 	/*
 	 * Possiveis Argumentos:
 	 * 0 - Arquivo ou Diretorio do fasta
@@ -33,9 +33,9 @@ public class Application {
 	public static void main(String[] args) throws IOException, SQLException {
 		String fastaDirectory = null;
 		String outputFile = null;
-		
+
 		Properties prop = ReadProperties.getProp();
-		
+
 		int numOfArgs = args.length;
 		switch (numOfArgs) {
 		case 0:
@@ -58,7 +58,7 @@ public class Application {
 		String idSeqDNA = prop.getProperty("id.seqDna");
 		List<FastaInfo> listFastaInfo = new ArrayList<FastaInfo>();
 		long startTime = System.currentTimeMillis();
-		
+
 		if(bd.equals("CASSANDRA")){
 			if(cleanData.equals("YES")){
 				CassandraCreateExperiment2.main(null);
@@ -72,7 +72,7 @@ public class Application {
 					dao.findByID(idSeqDNA);
 				}
 			}
-		
+
 		}else if (bd.equals("MONGODB")){
 			if(cleanData.equals("YES")){
 				MongoDBCreate.main(null);
@@ -86,7 +86,7 @@ public class Application {
 					dao.findByID(idSeqDNA);
 				}
 			}
-			
+
 		}else if (bd.equals("MYSQL")){
 			if(cleanData.equals("YES")){
 				MySQLCreate.main(null);
@@ -100,7 +100,7 @@ public class Application {
 					dao.findByID(idSeqDNA);
 				}
 			}
-			
+
 		}  else{
 			System.out.println("Opção de banco inválida :(");
 		}
@@ -111,14 +111,22 @@ public class Application {
 		NumberFormat formatter = new DecimalFormat("#0.00");
 		System.out.print("\n******** Tempo de execução: " 
 				+ formatter.format(totalTime / 1000d) + " segundos \n");
-		
+
 		String createOutputFile = prop.getProperty("create.output.file").toUpperCase();
 		if (createOutputFile.equals("YES")){
-			System.out.println("*** Criando o arquivo: "+outputFile);
-			OutputFasta outputFasta = new OutputFasta();
-//			outputFasta.createFastaFile(outputFile);
-			outputFasta.prepareFastaFile(listFastaInfo);
-			
+			if (listFastaInfo.isEmpty()){
+				System.out.println("*** É necessário realizar a extração.\n"
+						+ " Coloque o valor 'no' na propriedade 'clean.data' se a inserção já foi feita");
+			}else{
+
+				System.out.println("*** Criando o arquivo: "+outputFile);
+				OutputFasta outputFasta = new OutputFasta();
+				outputFasta.createFastaFile(outputFile);
+				outputFasta.prepareFastaFile(listFastaInfo);
+				outputFasta.closeFastaFile();
+				System.out.println("*** Fim ***");
+			}
+
 		}
 	}
 

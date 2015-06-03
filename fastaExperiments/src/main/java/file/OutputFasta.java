@@ -20,20 +20,21 @@ public class OutputFasta {
 	
 	private FileWriter fw;
 	private BufferedWriter bw;
+	private File file;
 	
 	public OutputFasta() throws IOException {
 		this.fw = null;
 		this.bw = null;
+		this.file = null;
 	}
 	
 	public void createFastaFile(String filename) throws IOException{
-		File file = new File(filename);
+		this.file = new File(filename);
 		 
-		// if file doesnt exists, then create it
 		if (!file.exists()) {
 			file.createNewFile();
 		}
-		this.fw = new FileWriter(file.getAbsoluteFile());
+		this.fw = new FileWriter(this.file.getAbsoluteFile());
 		this.bw = new BufferedWriter(fw);
 	}
 	

@@ -101,9 +101,8 @@ public class FastaReaderToMySQL {
 			this.dao.beforeExecuteQuery();
 			for (int i = 0; i < allData.size(); i++) {
 				this.dao.executeQuery(allData.get(i));
-				if (i == 10){
+				if (i%1000 == 0){
 					System.out.println("Quantidade de registros inseridos: "+i);
-					break;
 				}
 			}
 			this.dao.afterExecuteQuery();
