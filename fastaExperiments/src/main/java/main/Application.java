@@ -4,7 +4,10 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
+
 
 import config.ReadProperties;
 import create.CassandraCreateExperiment2;
@@ -13,9 +16,11 @@ import create.MySQLCreate;
 import dao.CassandraExperiment2DAO;
 import dao.MongoDBDAO;
 import dao.MySQLDAO;
+import dna.FastaInfo;
 import file.FastaReaderToCassandra;
 import file.FastaReaderToMongoDB;
 import file.FastaReaderToMySQL;
+import file.OutputFasta;
 
 public class Application {
 	
@@ -51,7 +56,7 @@ public class Application {
 		String bd = prop.getProperty("database").toUpperCase();
 		String cleanData = prop.getProperty("clean.data").toUpperCase();
 		String idSeqDNA = prop.getProperty("id.seqDna");
-		
+		List<FastaInfo> listFastaInfo = new ArrayList<FastaInfo>();
 		long startTime = System.currentTimeMillis();
 		
 		if(bd.equals("CASSANDRA")){
@@ -90,7 +95,7 @@ public class Application {
 			}else{
 				MySQLDAO dao = new MySQLDAO();
 				if (idSeqDNA.equals("0")){
-					dao.findAll(outputFile);
+					listFastaInfo = dao.findAll();
 				}else{
 					dao.findByID(idSeqDNA);
 				}
@@ -104,7 +109,17 @@ public class Application {
 
 		long totalTime = endTime - startTime;
 		NumberFormat formatter = new DecimalFormat("#0.00");
-		System.out.print("\n******** Tempo de execução: " + formatter.format(totalTime / 1000d) + " segundos \n");
+		System.out.print("\n******** Tempo de execução: " 
+				+ formatter.format(totalTime / 1000d) + " segundos \n");
+		
+		String createOutputFile = prop.getProperty("create.output.file").toUpperCase();
+		if (createOutputFile.equals("YES")){
+			System.out.println("*** Criando o arquivo: "+outputFile);
+			OutputFasta outputFasta = new OutputFasta();
+//			outputFasta.createFastaFile(outputFile);
+			outputFasta.prepareFastaFile(listFastaInfo);
+			
+		}
 	}
 
 }

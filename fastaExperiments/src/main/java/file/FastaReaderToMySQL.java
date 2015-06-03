@@ -69,7 +69,7 @@ public class FastaReaderToMySQL {
 					seqDNA = brokenFasta[0];
 				}
 				if (numOfLine%2 == 0){
-					String query = "INSERT INTO fasta_collect (id, seq_dna) VALUES ('"+id+"', '"+seqDNA+"');";
+					String query = "INSERT INTO fasta_collect (id, seq_dna, line) VALUES ('"+id+"', '"+seqDNA+"', "+this.lines/2+");";
 					allQuery.add(query);
 					id = "";
 					seqDNA = "";
@@ -101,8 +101,9 @@ public class FastaReaderToMySQL {
 			this.dao.beforeExecuteQuery();
 			for (int i = 0; i < allData.size(); i++) {
 				this.dao.executeQuery(allData.get(i));
-				if (i%1000 == 0){
+				if (i == 10){
 					System.out.println("Quantidade de registros inseridos: "+i);
+					break;
 				}
 			}
 			this.dao.afterExecuteQuery();

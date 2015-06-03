@@ -54,7 +54,7 @@ public class MySQLCreate {
 		try{
 			Connection conectar = new ConnectMySQL().connectMysql(this.database);
 			System.out.println("Creating table fasta_collect");
-			this.query = "CREATE TABLE IF NOT EXISTS fasta_collect (id VARCHAR(50) PRIMARY KEY, seq_dna VARCHAR(52));";
+			this.query = "CREATE TABLE IF NOT EXISTS fasta_collect (id VARCHAR(50) PRIMARY KEY, seq_dna VARCHAR(52), line INT(10));";
 			PreparedStatement queryExec = conectar.prepareStatement(this.query);
 			queryExec.execute();
 			queryExec.close();
