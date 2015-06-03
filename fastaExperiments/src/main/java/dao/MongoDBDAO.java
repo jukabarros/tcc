@@ -44,7 +44,7 @@ public class MongoDBDAO {
 	}
 	
 	
-	public void findAll(String outputfile) throws IOException{
+	public void findAll() throws IOException{
 
 		DBCursor cursor = this.dbCollection.find();
 

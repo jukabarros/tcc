@@ -10,10 +10,10 @@ import java.util.Properties;
 
 
 import config.ReadProperties;
-import create.CassandraCreateExperiment2;
+import create.CassandraCreate;
 import create.MongoDBCreate;
 import create.MySQLCreate;
-import dao.CassandraExperiment2DAO;
+import dao.CassandraDAO;
 import dao.MongoDBDAO;
 import dao.MySQLDAO;
 import dna.FastaInfo;
@@ -27,8 +27,7 @@ public class Application {
 	/*
 	 * Possiveis Argumentos:
 	 * 0 - Arquivo ou Diretorio do fasta
-	 * 1 - Descricao do arquivo do fasta
-	 * 2 - Arquivo de Saida
+	 * 1 - Arquivo de Saida
 	 */
 	public static void main(String[] args) throws IOException, SQLException {
 		String fastaDirectory = null;
@@ -58,16 +57,19 @@ public class Application {
 		String idSeqDNA = prop.getProperty("id.seqDna");
 		List<FastaInfo> listFastaInfo = new ArrayList<FastaInfo>();
 		long startTime = System.currentTimeMillis();
-
+		
+		/*
+		 * INSERINDO / EXTRAINDO DO BD
+		 */
 		if(bd.equals("CASSANDRA")){
 			if(cleanData.equals("YES")){
-				CassandraCreateExperiment2.main(null);
+				CassandraCreate.main(null);
 				FastaReaderToCassandra frToCassandra = new FastaReaderToCassandra();
 				frToCassandra.readFastaDirectory(fastaDirectory);
 			}else{
-				CassandraExperiment2DAO dao = new CassandraExperiment2DAO();
+				CassandraDAO dao = new CassandraDAO();
 				if (idSeqDNA.equals("0")){
-					dao.findAll(outputFile);
+					dao.findAll();
 				}else{
 					dao.findByID(idSeqDNA);
 				}
@@ -81,7 +83,7 @@ public class Application {
 			}else{
 				MongoDBDAO dao = new MongoDBDAO();
 				if (idSeqDNA.equals("0")){
-					dao.findAll(outputFile);
+					dao.findAll();
 				}else{
 					dao.findByID(idSeqDNA);
 				}
@@ -112,6 +114,9 @@ public class Application {
 		System.out.print("\n******** Tempo de execução: " 
 				+ formatter.format(totalTime / 1000d) + " segundos \n");
 
+		/*
+		 * CRIANDO O ARQUIVO DE SAIDA
+		 */
 		String createOutputFile = prop.getProperty("create.output.file").toUpperCase();
 		if (createOutputFile.equals("YES")){
 			if (listFastaInfo.isEmpty()){

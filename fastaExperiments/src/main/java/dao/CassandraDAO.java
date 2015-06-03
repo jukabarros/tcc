@@ -1,5 +1,10 @@
 package dao;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
+
 import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
@@ -7,25 +12,28 @@ import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 
 import config.ConnectCassandra;
+import config.ReadProperties;
+import dna.FastaInfo;
 
-public class CassandraExperiment2DAO {
+public class CassandraDAO {
 	
 	private ConnectCassandra connCassandra;
 	private Session session;
 	private String query;
-	private final String KEYSPACE = "experiment2";
+	private String keyspace;
 	
-	public CassandraExperiment2DAO() {
+	public CassandraDAO() throws IOException {
 		super();
-		// TODO Auto-generated constructor stub
 		this.connCassandra = new ConnectCassandra();
 		this.session = null;
 		this.query = null;
+		Properties prop = ReadProperties.getProp();
+		this.keyspace =  prop.getProperty("cassandra.keyspace");
 	}
 	
 	public void beforeExecuteQuery(){
 		this.connCassandra.connect();
-		this.session = this.connCassandra.getCluster().connect(KEYSPACE);
+		this.session = this.connCassandra.getCluster().connect(this.keyspace);
 		
 	}
 	
@@ -41,20 +49,24 @@ public class CassandraExperiment2DAO {
 		}
 	}
 	
-	public void findAll(String outputfile){
+	public void findAll(){
 		this.beforeExecuteQuery();
 		this.query = "SELECT * FROM fastaCollect;";
 		ResultSet results = session.execute(this.query);
 		int line = 0;
-		System.out.println(String.format("%-30s\t%-70s", "id", "seqDNA",
-				"----------------+------------------------------------"));
+//		System.out.println(String.format("%-30s\t%-70s", "id", "seqDNA",
+//				"----------------+------------------------------------"));
+		List<FastaInfo> listFastaInfo = new ArrayList<FastaInfo>();
 		for (Row row : results) {
-			System.out.println(String.format("%-30s\t%-70s", row.getString("id"), row.getString("seq_dna")));
+//			System.out.println(String.format("%-30s\t%-70s", row.getString("id"), row.getString("seq_dna")));
+			FastaInfo fastaInfo = new FastaInfo(row.getString("id"), row.getString("seq_dna"), row.getInt(3));
+			listFastaInfo.add(fastaInfo);
+			fastaInfo = null;
 			line++;
 		}
 		this.afterExecuteQuery();
 		System.out.println();
-		System.out.println("******* NUM OF LINES: "+line);
+		System.out.println("******* Quantidade de linhas: "+line);
 	}
 	
 	public void insert(String id, String seqDna){
@@ -77,14 +89,19 @@ public class CassandraExperiment2DAO {
 		BoundStatement boundStatement = new BoundStatement(statement);
 		ResultSet results = this.session.execute(boundStatement.bind(id));
 		int line = 0;
-		System.out.println(String.format("%-30s\t%-70s", "id", "seqDNA",
-				"----------------+------------------------------------"));
+//		System.out.println(String.format("%-30s\t%-70s", "id", "seqDNA",
+//				"----------------+------------------------------------"));
+		List<FastaInfo> listFastaInfo = new ArrayList<FastaInfo>();
 		for (Row row : results) {
-			System.out.println(String.format("%-30s\t%-70s", row.getString("id"), row.getString("seq_dna")));
+//			System.out.println(String.format("%-30s\t%-70s", row.getString("id"), row.getString("seq_dna")));
+			FastaInfo fastaInfo = new FastaInfo(row.getString("id"), row.getString("seq_dna"), row.getInt("num_line"));
+			listFastaInfo.add(fastaInfo);
+			fastaInfo = null;
+			line++;
 		}
 		this.afterExecuteQuery();
 		System.out.println();
-		System.out.println("******* NUM OF LINES: "+line);
+		System.out.println("******* Quantidade de linhas: "+line);
 	}
 
 }

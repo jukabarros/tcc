@@ -10,19 +10,19 @@ import java.util.List;
 import java.util.Properties;
 
 import config.ReadProperties;
-import dao.CassandraExperiment2DAO;
+import dao.CassandraDAO;
 
 public class FastaReaderToCassandra {
 	
 	public int lines;
 	
-	private CassandraExperiment2DAO dao;
+	private CassandraDAO dao;
 	
 	
-	public FastaReaderToCassandra() {
+	public FastaReaderToCassandra() throws IOException {
 		super();
 		this.lines = 0;
-		this.dao = new CassandraExperiment2DAO();
+		this.dao = new CassandraDAO();
 	}
 	
 	/**
@@ -76,7 +76,7 @@ public class FastaReaderToCassandra {
 					seqDNA += brokenFasta[0];
 				}
 				if (numOfLine%rssSize == 0){
-					String query = "INSERT INTO fastaCollect (id, seq_dna) VALUES ('"+id+"', '"+seqDNA+"');";
+					String query = "INSERT INTO fastaCollect (id, seq_dna, num_line) VALUES ('"+id+"', '"+seqDNA+"', "+this.lines/2+");";
 					allQuery.add(query);
 					System.out.println("IDs: "+id);
 					id = "";
@@ -106,7 +106,6 @@ public class FastaReaderToCassandra {
 		try{
 			this.dao.beforeExecuteQuery();
 			for (int i = 0; i < allData.size(); i++) {
-				//			System.out.println(allData.get(i));
 				this.dao.executeQuery(allData.get(i));
 				if (i%1000 == 0){
 					System.out.println("Numero de registros inseridos: "+i);
@@ -115,7 +114,7 @@ public class FastaReaderToCassandra {
 			this.dao.afterExecuteQuery();
 			System.out.println("**** Total de linhas inseridas no Banco: "+this.lines/2);
 		}catch (Exception e){
-			System.out.println("Erro ao executar a query :( n"+e.getMessage());
+			System.out.println("Erro ao executar a query :( \n"+e.getMessage());
 		}
 	}
 

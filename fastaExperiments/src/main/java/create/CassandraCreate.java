@@ -15,7 +15,7 @@ import config.ReadProperties;
  * Cria um keyspace com uma tabela que possui uma unica
  * coluna que vai ser inserida o ID com a sequencia
  */
-public class CassandraCreateExperiment2 {
+public class CassandraCreate {
 	
 	private ConnectCassandra connCassandra;
 	private Session session;
@@ -25,7 +25,7 @@ public class CassandraCreateExperiment2 {
 	private String replicationFactor;
 	
 	
-	public CassandraCreateExperiment2() throws IOException {
+	public CassandraCreate() throws IOException {
 		super();
 		Properties prop = ReadProperties.getProp();
 		this.connCassandra = new ConnectCassandra();
@@ -73,7 +73,7 @@ public class CassandraCreateExperiment2 {
 		System.out.println("Creating tables...");
 		try{
 			this.query = "CREATE TABLE IF NOT EXISTS "+this.keyspace+".fastaCollect "
-					+ "(id text PRIMARY KEY, seq_dna text)";
+					+ "(id text PRIMARY KEY, seq_dna text, num_line bigint)";
 			this.session.execute(this.query);
 		}catch (Exception e){
 			System.out.println("Erro ao criar a tabela: "+e.getMessage());
@@ -109,7 +109,7 @@ public class CassandraCreateExperiment2 {
 
 	public static void main(String[] args) throws IOException {
 		long startTime = System.currentTimeMillis();
-		CassandraCreateExperiment2 create = new CassandraCreateExperiment2();
+		CassandraCreate create = new CassandraCreate();
 		create.truncateTable("fastaCollect");
 		System.out.println("OK");
 		create.dropKeyspace();
