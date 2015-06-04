@@ -92,8 +92,9 @@ public class Application {
 				frToMongo.readFastaDirectory(fastaDirectory);
 			}else{
 				MongoDBDAO dao = new MongoDBDAO();
-				if (idSeqDNA.equals("0")){
-					dao.findAll();
+				if (extractToFile.equals("YES")){
+					System.out.println("\n**** Extraindo o conteudo: "+fileNameOutput);
+					listFastaContent = dao.findByCollection(fileNameOutput);
 				}else{
 					dao.findByID(idSeqDNA);
 				}
@@ -107,7 +108,7 @@ public class Application {
 			}else{
 				MySQLDAO dao = new MySQLDAO();
 				if (extractToFile.equals("YES")){
-					System.out.println("\n **** Extraindo o conteudo de: "+fileNameOutput);
+					System.out.println("\n**** Extraindo o conteudo: "+fileNameOutput);
 					listFastaContent = dao.findByFilename(fileNameOutput);
 				}else{
 					listFastaContent =  dao.findByID(idSeqDNA);
@@ -134,7 +135,8 @@ public class Application {
 		String createOutputFile = prop.getProperty("create.output.file").toUpperCase();
 		if (createOutputFile.equals("YES")){
 			if (listFastaContent.isEmpty()){
-				System.out.println("*** Para Gerar o arquivo fasta é necessário realizar a extração do Banco de Dados.\n"
+				System.out.println("*** Não foi possível gerar o arquivo fasta.\n"
+						+ "Para Gerar o arquivo fasta é necessário realizar a extração do Banco de Dados.\n"
 						+ "OBS.: Caso a inserção já foi feita coloque o valor 'no' na propriedade 'insert.data'.");
 			}else{
 

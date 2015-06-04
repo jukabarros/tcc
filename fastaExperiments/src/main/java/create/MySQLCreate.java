@@ -24,7 +24,7 @@ public class MySQLCreate {
 		try{
 			// Conexao vai vazio pois o banco ainda nao foi criado
 			Connection conectar = new ConnectMySQL().connectMysql("");
-			System.out.println("Creating Database "+this.database);
+			System.out.println("Criando Banco de Dados "+this.database);
 			this.query = "CREATE DATABASE IF NOT EXISTS "+this.database+";";
 			PreparedStatement queryExec = conectar.prepareStatement(this.query);
 			queryExec.execute();
@@ -39,7 +39,7 @@ public class MySQLCreate {
 	public void dropDatabase() throws SQLException{
 		try{
 			Connection conectar = new ConnectMySQL().connectMysql("");
-			System.out.println("Dropping Database "+this.database);
+			System.out.println("Limpando o Banco de Dados "+this.database);
 			this.query = "DROP DATABASE IF EXISTS "+this.database+";";
 			PreparedStatement queryExec = conectar.prepareStatement(this.query);
 			queryExec.execute();
@@ -57,7 +57,7 @@ public class MySQLCreate {
 	public void createTables() throws SQLException{
 		try{
 			Connection conectar = new ConnectMySQL().connectMysql(this.database);
-			System.out.println("Creating table: fasta_info");
+			System.out.println("Criando a tabela: fasta_info");
 			this.query = "CREATE TABLE IF NOT EXISTS fasta_info (id INT NOT NULL AUTO_INCREMENT,"
 					+ " file_name VARCHAR(52), size DOUBLE(50,3),"
 					+ " comment VARCHAR (200), PRIMARY KEY (id));";
@@ -65,7 +65,7 @@ public class MySQLCreate {
 			queryExec0.execute();
 			queryExec0.close();
 
-			System.out.println("Creating table: fasta_collect");
+			System.out.println("Criando a tabela: fasta_collect");
 			this.query = "CREATE TABLE IF NOT EXISTS fasta_collect (id INT PRIMARY KEY AUTO_INCREMENT,"
 					+ "id_seq VARCHAR(50), seq_dna VARCHAR(52), line INT(50), fasta_info INT, "
 					+ "FOREIGN KEY fasta_collect (fasta_info)"
@@ -83,13 +83,13 @@ public class MySQLCreate {
 	public void truncateTables() throws SQLException{
 		try{
 			Connection conectar = new ConnectMySQL().connectMysql(this.database);
-			System.out.println("Cleaning table fasta_collect");
+			System.out.println("Limpando a tabela fasta_collect");
 			this.query = "TRUNCATE fasta_collect;";
 			PreparedStatement queryExec = conectar.prepareStatement(this.query);
 			queryExec.execute();
 			queryExec.close();
 			// Truncate nao pode por causa da chave estrangeira
-			System.out.println("Cleaning table fasta_info");
+			System.out.println("Limpando a tabela fasta_info");
 			this.query = "DELETE FROM fasta_info;";
 			PreparedStatement queryExec0 = conectar.prepareStatement(this.query);
 			queryExec0.execute();

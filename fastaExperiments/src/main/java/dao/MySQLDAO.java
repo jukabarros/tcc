@@ -129,21 +129,21 @@ public class MySQLDAO {
 		queryExec.setInt(1, fileID);
 		ResultSet results = queryExec.executeQuery();
 		int line = 0;
-		List<FastaContent> listFastaInfo = new ArrayList<FastaContent>();
+		List<FastaContent> listFastaContent = new ArrayList<FastaContent>();
 		while (results.next()){
 			FastaContent fastaInfo = new FastaContent(results.getString(1), results.getString(2), results.getInt(3));
-			listFastaInfo.add(fastaInfo);
+			listFastaContent.add(fastaInfo);
 			fastaInfo = null;
 			line++;
 		}
-		if (listFastaInfo.isEmpty()){
+		if (listFastaContent.isEmpty()){
 			System.out.println("*** Conteúdo do arquivo não encontrado no Banco de dados :(");
 		}
 		afterExecuteQuery();
 		
 		System.out.println();
 		System.out.println("**** Quantidade de registros: "+line);
-		return listFastaInfo;
+		return listFastaContent;
 		
 	}
 	
@@ -155,21 +155,21 @@ public class MySQLDAO {
 		queryExec.setString(1, idSeqDNA);
 		ResultSet results = queryExec.executeQuery();
 		int line = 0;
-		List<FastaContent> listFastaInfo = new ArrayList<FastaContent>();
+		List<FastaContent> listFastaContent = new ArrayList<FastaContent>();
 		while (results.next()){
 			FastaContent fastaInfo = new FastaContent(results.getString(1), results.getString(2), results.getInt(3));
-			listFastaInfo.add(fastaInfo);
+			listFastaContent.add(fastaInfo);
 			fastaInfo = null;
 			line++;
 		}
-		if (listFastaInfo.isEmpty()){
+		if (listFastaContent.isEmpty()){
 			System.out.println("*** ID não encontrado no Banco de dados :(");
 		}
 		afterExecuteQuery();
 		System.out.println();
 		System.out.println("**** Quantidade de linhas: "+line);
 		
-		return listFastaInfo;
+		return listFastaContent;
 		
 	}
 

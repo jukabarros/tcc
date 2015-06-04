@@ -73,6 +73,7 @@ public class FastaReaderToMySQL {
 			String idSeq = "";
 			String seqDNA = "";
 			System.out.println("**** Processando o arquivo fasta");
+			
 			List<String> allQuery = new ArrayList<String>();
 			while ((line = br.readLine()) != null) {
 				numOfLine++;

@@ -12,14 +12,18 @@ import dao.MongoDBDAO;
 
 public class FastaReaderToMongoDB {
 	
-	public int lines;
+	public int allLines;
 	
 	private MongoDBDAO dao;
+	
+	// Numero da linha de um arquivo especifico
+	private int lineNumber;
 	
 	
 	public FastaReaderToMongoDB() throws IOException {
 		super();
-		this.lines = 0;
+		this.allLines = 0;
+		this.lineNumber = 0;
 		this.dao = new MongoDBDAO();
 	}
 	
@@ -38,6 +42,12 @@ public class FastaReaderToMongoDB {
 			if (file.isFile()){
 				System.out.println("Lendo o arquivo: "+file.getName());
 				if (file.getName().endsWith(".fasta") || file.getName().endsWith(".fa")){
+					System.out.println("*** Indexando o arquivo: "+file.getName());
+					long sizeInMb = file.length() / (1024 * 1024);
+					this.dao.insertFastaInfo(file.getName(), "Inserir comentario", sizeInMb);
+					System.out.println("OK\n");
+					this.dao.getCollection(file.getName());
+					this.lineNumber = 0;
 					this.readFastaFile(file.getAbsolutePath());
 					System.out.println("** Fim da leitura do arquivo: "+file.getName());
 				}else {
@@ -65,7 +75,8 @@ public class FastaReaderToMongoDB {
 			System.out.println("**** Processando o arquivo fasta");
 			while ((line = br.readLine()) != null) {
 				numOfLine++;
-				this.lines++;
+				this.allLines++;
+				this.lineNumber++;
 				String[] brokenFasta = line.split(fastaSplitBy);
 				if (numOfLine%2 == 1){
 					id += brokenFasta[0];
@@ -73,15 +84,15 @@ public class FastaReaderToMongoDB {
 					seqDNA += brokenFasta[0];
 				}
 				if (numOfLine%rssSize == 0){
-					this.dao.insertData(id, seqDNA);
+					this.dao.insertData(id, seqDNA, this.lineNumber/2);
 					id = "";
 					seqDNA = "";
 				}
-				if (this.lines%2000==0){
-					System.out.println("*** Número de registros inseridos: "+this.lines/2);
+				if (this.allLines%2000==0){
+					System.out.println("*** Número de registros inseridos: "+this.allLines/2);
 				}
 			}
-			System.out.println("\n*** Número Total de registros inseridos: "+this.lines/2);
+			System.out.println("\n*** Número Total de registros inseridos: "+this.allLines/2);
 	 
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
