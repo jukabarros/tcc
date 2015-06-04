@@ -61,8 +61,8 @@ public class Application {
 		}
 
 		String bd = prop.getProperty("database").toUpperCase();
-		String cleanData = prop.getProperty("clean.data").toUpperCase();
-		String idSeqDNA = prop.getProperty("id.seqDna");
+		String insertData = prop.getProperty("insert.data").toUpperCase();
+		String idSeqDNA = prop.getProperty("id.seqDNA");
 		String extractToFile = prop.getProperty("extract.file").toUpperCase();
 		List<FastaContent> listFastaContent = new ArrayList<FastaContent>();
 		long startTime = System.currentTimeMillis();
@@ -70,7 +70,7 @@ public class Application {
 		 * INSERINDO / EXTRAINDO DO BD
 		 */
 		if(bd.equals("CASSANDRA")){
-			if(cleanData.equals("YES")){
+			if(insertData.equals("YES")){
 				
 				CassandraCreate.main(null);
 				FastaReaderToCassandra frToCassandra = new FastaReaderToCassandra();
@@ -86,7 +86,7 @@ public class Application {
 			}
 
 		}else if (bd.equals("MONGODB")){
-			if(cleanData.equals("YES")){
+			if(insertData.equals("YES")){
 				MongoDBCreate.main(null);
 				FastaReaderToMongoDB frToMongo = new FastaReaderToMongoDB();
 				frToMongo.readFastaDirectory(fastaDirectory);
@@ -100,18 +100,24 @@ public class Application {
 			}
 
 		}else if (bd.equals("MYSQL")){
-			if(cleanData.equals("YES")){
+			if(insertData.equals("YES")){
 				MySQLCreate.main(null);
 				FastaReaderToMySQL frToMySQL = new FastaReaderToMySQL();
 				frToMySQL.readFastaDirectory(fastaDirectory);
 			}else{
 				MySQLDAO dao = new MySQLDAO();
 				if (extractToFile.equals("YES")){
-					System.out.println("Extraindo o conteudo de: "+fileNameOutput);
+					System.out.println("\n **** Extraindo o conteudo de: "+fileNameOutput);
 					listFastaContent = dao.findByFilename(fileNameOutput);
-					System.out.println("OK");
 				}else{
 					listFastaContent =  dao.findByID(idSeqDNA);
+					System.out.println("\n**** Registro(s) encontrados com ID: "+idSeqDNA);
+					for (int i = 0; i < listFastaContent.size(); i++) {
+						System.out.println("\nID: "+listFastaContent.get(i).getId());
+						System.out.println("Seq DNA: "+listFastaContent.get(i).getSeqDNA());
+						System.out.println("Linha: "+listFastaContent.get(i).getLine());
+					}
+					
 				}
 			}
 
@@ -128,8 +134,8 @@ public class Application {
 		String createOutputFile = prop.getProperty("create.output.file").toUpperCase();
 		if (createOutputFile.equals("YES")){
 			if (listFastaContent.isEmpty()){
-				System.out.println("*** É necessário realizar a extração.\n"
-						+ " Coloque o valor 'no' na propriedade 'clean.data' se a inserção já foi feita");
+				System.out.println("*** Para Gerar o arquivo fasta é necessário realizar a extração do Banco de Dados.\n"
+						+ "OBS.: Caso a inserção já foi feita coloque o valor 'no' na propriedade 'insert.data'.");
 			}else{
 
 				System.out.println("*** Criando o arquivo: "+fileNameOutput);

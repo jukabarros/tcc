@@ -122,8 +122,8 @@ public class MySQLDAO {
 	public List<FastaContent> findByFilename(String fileName) throws SQLException{
 		// Recuperando o id do arquivo
 		int fileID = this.getIDFastaInfo(fileName);
-		beforeExecuteQuery();
 		
+		beforeExecuteQuery();		
 		query = "SELECT id_seq, seq_dna, line FROM fasta_collect WHERE fasta_info = ?;";
 		PreparedStatement queryExec = this.conn.prepareStatement(query);
 		queryExec.setInt(1, fileID);
@@ -136,21 +136,23 @@ public class MySQLDAO {
 			fastaInfo = null;
 			line++;
 		}
-		
+		if (listFastaInfo.isEmpty()){
+			System.out.println("*** Conteúdo do arquivo não encontrado no Banco de dados :(");
+		}
 		afterExecuteQuery();
 		
 		System.out.println();
-		System.out.println("***** Quantidade de registros: "+line);
+		System.out.println("**** Quantidade de registros: "+line);
 		return listFastaInfo;
 		
 	}
 	
-	public List<FastaContent> findByID(String id) throws SQLException{
-		beforeExecuteQuery();
+	public List<FastaContent> findByID(String idSeqDNA) throws SQLException{
 		
-		query = "SELECT * FROM fasta_collect WHERE id_seq = ?";
+		beforeExecuteQuery();	
+		query = "SELECT id_seq, seq_dna, line FROM fasta_collect WHERE id_seq = ?";
 		PreparedStatement queryExec = this.conn.prepareStatement(query);
-		queryExec.setString(1, id);
+		queryExec.setString(1, idSeqDNA);
 		ResultSet results = queryExec.executeQuery();
 		int line = 0;
 		List<FastaContent> listFastaInfo = new ArrayList<FastaContent>();
@@ -160,10 +162,12 @@ public class MySQLDAO {
 			fastaInfo = null;
 			line++;
 		}
-		
+		if (listFastaInfo.isEmpty()){
+			System.out.println("*** ID não encontrado no Banco de dados :(");
+		}
 		afterExecuteQuery();
 		System.out.println();
-		System.out.println("***** Quantidade de linhas: "+line);
+		System.out.println("**** Quantidade de linhas: "+line);
 		
 		return listFastaInfo;
 		
