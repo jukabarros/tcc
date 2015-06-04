@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-
 import config.ReadProperties;
 import create.CassandraCreate;
 import create.MongoDBCreate;
@@ -16,22 +15,31 @@ import create.MySQLCreate;
 import dao.CassandraDAO;
 import dao.MongoDBDAO;
 import dao.MySQLDAO;
-import dna.FastaInfo;
+import dna.FastaContent;
 import file.FastaReaderToCassandra;
 import file.FastaReaderToMongoDB;
 import file.FastaReaderToMySQL;
 import file.OutputFasta;
 
 public class Application {
-
+	
+	public long calcTimeExecution (long start, long end){
+		long totalTime = end - start;
+		NumberFormat formatter = new DecimalFormat("#0.00");
+		System.out.print("\n******** Tempo de execução: " 
+				+ formatter.format(totalTime / 1000d) + " segundos \n");
+		
+		return totalTime;
+	}
 	/*
 	 * Possiveis Argumentos:
 	 * 0 - Arquivo ou Diretorio do fasta
 	 * 1 - Arquivo de Saida
 	 */
 	public static void main(String[] args) throws IOException, SQLException {
+		Application app = new Application();
 		String fastaDirectory = null;
-		String outputFile = null;
+		String fileNameOutput = null;
 
 		Properties prop = ReadProperties.getProp();
 
@@ -40,32 +48,34 @@ public class Application {
 		case 0:
 			System.out.println("** Capturando os parametros no arquivo properties");
 			fastaDirectory = prop.getProperty("fasta.directory");
-			outputFile = prop.getProperty("output.file");
+			fileNameOutput = prop.getProperty("file.name.output");
 			break;
 		case 1:
 			fastaDirectory = args[0];
-			outputFile = prop.getProperty("output.file");
+			fileNameOutput = prop.getProperty("file.name.output");
 			break;
 		default:
 			fastaDirectory = args[0];
-			outputFile = args[1];
+			fileNameOutput = args[1];
 			break;
 		}
 
 		String bd = prop.getProperty("database").toUpperCase();
 		String cleanData = prop.getProperty("clean.data").toUpperCase();
 		String idSeqDNA = prop.getProperty("id.seqDna");
-		List<FastaInfo> listFastaInfo = new ArrayList<FastaInfo>();
+		String extractToFile = prop.getProperty("extract.file").toUpperCase();
+		List<FastaContent> listFastaContent = new ArrayList<FastaContent>();
 		long startTime = System.currentTimeMillis();
-		
 		/*
 		 * INSERINDO / EXTRAINDO DO BD
 		 */
 		if(bd.equals("CASSANDRA")){
 			if(cleanData.equals("YES")){
+				
 				CassandraCreate.main(null);
 				FastaReaderToCassandra frToCassandra = new FastaReaderToCassandra();
 				frToCassandra.readFastaDirectory(fastaDirectory);
+				
 			}else{
 				CassandraDAO dao = new CassandraDAO();
 				if (idSeqDNA.equals("0")){
@@ -96,10 +106,12 @@ public class Application {
 				frToMySQL.readFastaDirectory(fastaDirectory);
 			}else{
 				MySQLDAO dao = new MySQLDAO();
-				if (idSeqDNA.equals("0")){
-					listFastaInfo = dao.findAll();
+				if (extractToFile.equals("YES")){
+					System.out.println("Extraindo o conteudo de: "+fileNameOutput);
+					listFastaContent = dao.findByFilename(fileNameOutput);
+					System.out.println("OK");
 				}else{
-					dao.findByID(idSeqDNA);
+					listFastaContent =  dao.findByID(idSeqDNA);
 				}
 			}
 
@@ -108,26 +120,22 @@ public class Application {
 		}
 
 		long endTime = System.currentTimeMillis();
-
-		long totalTime = endTime - startTime;
-		NumberFormat formatter = new DecimalFormat("#0.00");
-		System.out.print("\n******** Tempo de execução: " 
-				+ formatter.format(totalTime / 1000d) + " segundos \n");
+		app.calcTimeExecution(startTime, endTime);
 
 		/*
-		 * CRIANDO O ARQUIVO DE SAIDA
+		 * CRIANDO O ARQUIVO DE SAIDA .fasta ou .fa
 		 */
 		String createOutputFile = prop.getProperty("create.output.file").toUpperCase();
 		if (createOutputFile.equals("YES")){
-			if (listFastaInfo.isEmpty()){
+			if (listFastaContent.isEmpty()){
 				System.out.println("*** É necessário realizar a extração.\n"
 						+ " Coloque o valor 'no' na propriedade 'clean.data' se a inserção já foi feita");
 			}else{
 
-				System.out.println("*** Criando o arquivo: "+outputFile);
+				System.out.println("*** Criando o arquivo: "+fileNameOutput);
 				OutputFasta outputFasta = new OutputFasta();
-				outputFasta.createFastaFile(outputFile);
-				outputFasta.prepareFastaFile(listFastaInfo);
+				outputFasta.createFastaFile(fileNameOutput);
+				outputFasta.prepareFastaFile(listFastaContent);
 				outputFasta.closeFastaFile();
 				System.out.println("*** Fim ***");
 			}

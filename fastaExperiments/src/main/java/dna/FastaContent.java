@@ -4,7 +4,7 @@ package dna;
  * Cria objetos que vem do arquivo fasta inicial, usado para
  * escrever o novo arquivo
  */
-public class FastaInfo {
+public class FastaContent {
 	
 	private String id;
 	
@@ -12,7 +12,7 @@ public class FastaInfo {
 	
 	private int line;
 	
-	public FastaInfo(String id, String seqDNA, int line) {
+	public FastaContent(String id, String seqDNA, int line) {
 		super();
 		this.id = id;
 		this.seqDNA = seqDNA;

@@ -13,7 +13,7 @@ import com.datastax.driver.core.Session;
 
 import config.ConnectCassandra;
 import config.ReadProperties;
-import dna.FastaInfo;
+import dna.FastaContent;
 
 public class CassandraDAO {
 	
@@ -56,10 +56,10 @@ public class CassandraDAO {
 		int line = 0;
 //		System.out.println(String.format("%-30s\t%-70s", "id", "seqDNA",
 //				"----------------+------------------------------------"));
-		List<FastaInfo> listFastaInfo = new ArrayList<FastaInfo>();
+		List<FastaContent> listFastaInfo = new ArrayList<FastaContent>();
 		for (Row row : results) {
 //			System.out.println(String.format("%-30s\t%-70s", row.getString("id"), row.getString("seq_dna")));
-			FastaInfo fastaInfo = new FastaInfo(row.getString("id"), row.getString("seq_dna"), row.getInt(3));
+			FastaContent fastaInfo = new FastaContent(row.getString("id"), row.getString("seq_dna"), row.getInt(3));
 			listFastaInfo.add(fastaInfo);
 			fastaInfo = null;
 			line++;
@@ -91,10 +91,10 @@ public class CassandraDAO {
 		int line = 0;
 //		System.out.println(String.format("%-30s\t%-70s", "id", "seqDNA",
 //				"----------------+------------------------------------"));
-		List<FastaInfo> listFastaInfo = new ArrayList<FastaInfo>();
+		List<FastaContent> listFastaInfo = new ArrayList<FastaContent>();
 		for (Row row : results) {
 //			System.out.println(String.format("%-30s\t%-70s", row.getString("id"), row.getString("seq_dna")));
-			FastaInfo fastaInfo = new FastaInfo(row.getString("id"), row.getString("seq_dna"), row.getInt("num_line"));
+			FastaContent fastaInfo = new FastaContent(row.getString("id"), row.getString("seq_dna"), row.getInt("num_line"));
 			listFastaInfo.add(fastaInfo);
 			fastaInfo = null;
 			line++;

@@ -10,7 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import dna.FastaInfo;
+import dna.FastaContent;
 
 /*
  * Classe responsavel por criar o arquivo fasta apos 
@@ -46,15 +46,17 @@ public class OutputFasta {
 	 * Cria um MAP que tera a chave a linha e o valor id:seqDNA e que em seguida
 	 * feito um tratamento para criar o arquivo
 	 * 
+	 * Em seguida escreve o arquivo de saida
+	 * 
 	 * @param listFastaInfo 
 	 */
-	public void prepareFastaFile(List<FastaInfo> listFastaInfo){
+	public void prepareFastaFile(List<FastaContent> listFastaContent){
 		List<Integer> order = new ArrayList<Integer>();
 		Map<Integer, String> orderSequence = new HashMap<Integer, String>();
 		
-		for (int i = 0; i < listFastaInfo.size(); i++) {
-			int position = listFastaInfo.get(i).getLine();
-			String content = listFastaInfo.get(i).getId()+":"+listFastaInfo.get(i).getSeqDNA();
+		for (int i = 0; i < listFastaContent.size(); i++) {
+			int position = listFastaContent.get(i).getLine();
+			String content = listFastaContent.get(i).getId()+":"+listFastaContent.get(i).getSeqDNA();
 			orderSequence.put(position, content);
 			order.add(position);
 		}

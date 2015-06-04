@@ -50,21 +50,37 @@ public class MySQLCreate {
 		}
 	}
 	
-	public void createTable() throws SQLException{
+	/*
+	 * Cria 2 tabelas: fasta_info e fasta_collect
+	 * com relacao de 1 para N
+	 */
+	public void createTables() throws SQLException{
 		try{
 			Connection conectar = new ConnectMySQL().connectMysql(this.database);
-			System.out.println("Creating table fasta_collect");
-			this.query = "CREATE TABLE IF NOT EXISTS fasta_collect (id VARCHAR(50) PRIMARY KEY, seq_dna VARCHAR(52), line INT(10));";
-			PreparedStatement queryExec = conectar.prepareStatement(this.query);
-			queryExec.execute();
-			queryExec.close();
+			System.out.println("Creating table: fasta_info");
+			this.query = "CREATE TABLE IF NOT EXISTS fasta_info (id INT NOT NULL AUTO_INCREMENT,"
+					+ " file_name VARCHAR(52), size DOUBLE(50,3),"
+					+ " comment VARCHAR (200), PRIMARY KEY (id));";
+			PreparedStatement queryExec0 = conectar.prepareStatement(this.query);
+			queryExec0.execute();
+			queryExec0.close();
+
+			System.out.println("Creating table: fasta_collect");
+			this.query = "CREATE TABLE IF NOT EXISTS fasta_collect (id INT PRIMARY KEY AUTO_INCREMENT,"
+					+ "id_seq VARCHAR(50), seq_dna VARCHAR(52), line INT(50), fasta_info INT, "
+					+ "FOREIGN KEY fasta_collect (fasta_info)"
+					+ " REFERENCES fasta_info (id) ON DELETE CASCADE);";
+			
+			PreparedStatement queryExec1 = conectar.prepareStatement(this.query);
+			queryExec1.execute();
+			queryExec1.close();
 			System.out.println("OK");
 		}catch(SQLException e){
 			System.out.println("*** Erro ao criar a tabela: \n "+e.getMessage());
 		}
 	}
 	
-	public void truncateTable() throws SQLException{
+	public void truncateTables() throws SQLException{
 		try{
 			Connection conectar = new ConnectMySQL().connectMysql(this.database);
 			System.out.println("Cleaning table fasta_collect");
@@ -72,7 +88,14 @@ public class MySQLCreate {
 			PreparedStatement queryExec = conectar.prepareStatement(this.query);
 			queryExec.execute();
 			queryExec.close();
+			// Truncate nao pode por causa da chave estrangeira
+			System.out.println("Cleaning table fasta_info");
+			this.query = "DELETE FROM fasta_info;";
+			PreparedStatement queryExec0 = conectar.prepareStatement(this.query);
+			queryExec0.execute();
+			queryExec0.close();
 			System.out.println("OK");
+			
 		}catch(SQLException e){
 			System.out.println("*** Erro ao limpar a tabela: \n "+e.getMessage());
 		}
@@ -86,9 +109,9 @@ public class MySQLCreate {
 		
 		mc.createDatabase();
 		
-		mc.createTable();
+		mc.createTables();
 
-		mc.truncateTable();
+		mc.truncateTables();
 	}
 
 }

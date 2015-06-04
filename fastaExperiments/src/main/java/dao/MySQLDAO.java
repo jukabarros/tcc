@@ -11,7 +11,7 @@ import java.util.Properties;
 
 import config.ConnectMySQL;
 import config.ReadProperties;
-import dna.FastaInfo;
+import dna.FastaContent;
 
 public class MySQLDAO {
 	
@@ -50,14 +50,15 @@ public class MySQLDAO {
 		queryExec = null;
 	}
 
-	public void insertData(String id, String seqDna) throws SQLException{
+	public void insertFastaInfo(String fileName, long size, String comment) throws SQLException{
 		try{
 			beforeExecuteQuery();
 			
-			query = "INSERT INTO fasta_collect (id, seq_dna) VALUES (?,?);";
+			query = "INSERT INTO fasta_info (file_name, size, comment) VALUES (?,?,?);";
 			PreparedStatement queryExec = this.conn.prepareStatement(query);
-			queryExec.setString(1, id);
-			queryExec.setString(2, seqDna);
+			queryExec.setString(1, fileName);
+			queryExec.setLong(2, size);
+			queryExec.setString(3, comment);
 			queryExec.execute();
 			queryExec.close();
 			
@@ -66,22 +67,39 @@ public class MySQLDAO {
 			System.out.println("Erro ao inserir o registro: :( \n"+e.getMessage());
 		}
 	}
+	public int getIDFastaInfo(String fileName) throws SQLException{
+		beforeExecuteQuery();
+		
+		query = "SELECT * FROM fasta_info WHERE file_name = ?";
+		PreparedStatement queryExec = this.conn.prepareStatement(query);
+		queryExec.setString(1, fileName);
+		ResultSet results = queryExec.executeQuery();
+		int id = 0;
+		while (results.next()){
+			id = results.getInt(1);
+		}
+		
+		afterExecuteQuery();
+		
+		return id;
+		
+	}
 	
 	/*
 	 * Metodos de consulta ao banco de dados retornam uma lista de FastaInfo
 	 * o qual é usado para gerar o arquivo de saida
 	 */
 	
-	public List<FastaInfo> findAll() throws SQLException{
+	public List<FastaContent> findAll() throws SQLException{
 		beforeExecuteQuery();
 		
 		query = "SELECT * FROM fasta_collect;";
 		PreparedStatement queryExec = this.conn.prepareStatement(query);
 		ResultSet results = queryExec.executeQuery();
 		int line = 0;
-		List<FastaInfo> listFastaInfo = new ArrayList<FastaInfo>();
+		List<FastaContent> listFastaInfo = new ArrayList<FastaContent>();
 		while (results.next()){
-			FastaInfo fastaInfo = new FastaInfo(results.getString(1), results.getString(2), results.getInt(3));
+			FastaContent fastaInfo = new FastaContent(results.getString(1), results.getString(2), results.getInt(3));
 			listFastaInfo.add(fastaInfo);
 			fastaInfo = null;
 			line++;
@@ -95,17 +113,49 @@ public class MySQLDAO {
 		
 	}
 	
-	public List<FastaInfo> findByID(String id) throws SQLException{
+	/**
+	 * Retorna o conteudo de um arquivo especifico
+	 * @param fileName
+	 * @return
+	 * @throws SQLException
+	 */
+	public List<FastaContent> findByFilename(String fileName) throws SQLException{
+		// Recuperando o id do arquivo
+		int fileID = this.getIDFastaInfo(fileName);
 		beforeExecuteQuery();
 		
-		query = "SELECT * FROM fasta_collect WHERE id = ?";
+		query = "SELECT id_seq, seq_dna, line FROM fasta_collect WHERE fasta_info = ?;";
+		PreparedStatement queryExec = this.conn.prepareStatement(query);
+		queryExec.setInt(1, fileID);
+		ResultSet results = queryExec.executeQuery();
+		int line = 0;
+		List<FastaContent> listFastaInfo = new ArrayList<FastaContent>();
+		while (results.next()){
+			FastaContent fastaInfo = new FastaContent(results.getString(1), results.getString(2), results.getInt(3));
+			listFastaInfo.add(fastaInfo);
+			fastaInfo = null;
+			line++;
+		}
+		
+		afterExecuteQuery();
+		
+		System.out.println();
+		System.out.println("***** Quantidade de registros: "+line);
+		return listFastaInfo;
+		
+	}
+	
+	public List<FastaContent> findByID(String id) throws SQLException{
+		beforeExecuteQuery();
+		
+		query = "SELECT * FROM fasta_collect WHERE id_seq = ?";
 		PreparedStatement queryExec = this.conn.prepareStatement(query);
 		queryExec.setString(1, id);
 		ResultSet results = queryExec.executeQuery();
 		int line = 0;
-		List<FastaInfo> listFastaInfo = new ArrayList<FastaInfo>();
+		List<FastaContent> listFastaInfo = new ArrayList<FastaContent>();
 		while (results.next()){
-			FastaInfo fastaInfo = new FastaInfo(results.getString(1), results.getString(2), results.getInt(3));
+			FastaContent fastaInfo = new FastaContent(results.getString(1), results.getString(2), results.getInt(3));
 			listFastaInfo.add(fastaInfo);
 			fastaInfo = null;
 			line++;
