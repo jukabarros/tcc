@@ -59,7 +59,8 @@ public class Application {
 			fileNameOutput = args[1];
 			break;
 		}
-
+		int srsSize = Integer.parseInt(prop.getProperty("srs.quantity"));
+		System.out.println("Tamanho da SRS: "+srsSize);
 		String bd = prop.getProperty("database").toUpperCase();
 		String insertData = prop.getProperty("insert.data").toUpperCase();
 		String idSeqDNA = prop.getProperty("id.seqDNA");

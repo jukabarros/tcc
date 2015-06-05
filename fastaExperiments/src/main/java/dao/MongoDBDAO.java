@@ -26,6 +26,7 @@ public class MongoDBDAO {
 	 * cria uma nova
 	 */
 	public void getCollection(String collection) throws IOException{
+		System.out.println("** Collection "+collection);
 		this.dbCollection = this.mongoDBCreate.getCollection(collection);
 	}
 	
