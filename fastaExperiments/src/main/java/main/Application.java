@@ -26,7 +26,7 @@ public class Application {
 	public long calcTimeExecution (long start, long end){
 		long totalTime = end - start;
 		NumberFormat formatter = new DecimalFormat("#0.00");
-		System.out.print("\n******** Tempo de execução: " 
+		System.out.print("\n******** Tempo total de execução: " 
 				+ formatter.format(totalTime / 1000d) + " segundos \n");
 		
 		return totalTime;

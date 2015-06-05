@@ -1,13 +1,15 @@
 package file;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 
 import dao.MySQLDAO;
 
@@ -33,9 +35,10 @@ public class FastaReaderToMySQL {
 	 * e insere as informacoes do arquivo na tabela fasta_info
 	 * @param fastaDirectory
 	 * @throws SQLException 
+	 * @throws IOException 
 	 */
-	public void readFastaDirectory(String fastaDirectory) throws SQLException{
-		File directory = new File(fastaDirectory);
+	public void readFastaDirectory(String fastaFilePath) throws SQLException, IOException{
+		File directory = new File(fastaFilePath);
 		//get all the files from a directory
 		File[] fList = directory.listFiles();
 		
@@ -44,16 +47,24 @@ public class FastaReaderToMySQL {
 				System.out.println("** Lendo o arquivo: "+file.getName());
 				if (file.getName().endsWith(".fasta") || file.getName().endsWith(".fa")){
 					long sizeInMb = file.length() / (1024 * 1024);
+					// Faz verificacao do tamanho? se for maior que 200 MB quebra ele
+					// Com a ferramenta de python?
 					this.dao.insertFastaInfo(file.getName(), sizeInMb, "Inserir comentario");
 					// Recuperando id do arquivo para inserir na tabela fasta_collect
 					int idFastaInfo = this.dao.getIDFastaInfo(file.getName());
 					
 					this.lineNumber = 0;
-					
+					long startTime = System.currentTimeMillis();
 					this.readFastaFile(file.getAbsolutePath(), idFastaInfo);
+					long endTime = System.currentTimeMillis();
+					
+					// Calculando o tempo de insercao de cada arquivo
+					long timeExecution = this.calcTimeExecution(startTime, endTime);
+					this.insertTimeTxtFile(file.getName(), timeExecution);
+					
 					System.out.println("** Fim da leitura do arquivo: "+file.getName());
 				}else {
-					System.out.println("*** Erro "+file.getName()+ " não é um arquivo .fasta");
+					System.out.println("*** Erro "+file.getName()+ " não é um arquivo fasta");
 				}
 			}
 		}
@@ -61,8 +72,9 @@ public class FastaReaderToMySQL {
 	/**
 	 * Ler um Fasta especifico e insere no Cassandra
 	 * @param fastaFile
+	 * @throws SQLException 
 	 */
-	public void readFastaFile(String fastaFile, int idFastaInfo){
+	public void readFastaFile(String fastaFile, int idFastaInfo) throws SQLException{
 		BufferedReader br = null;
 		String line = "";
 		String fastaSplitBy = "\n";
@@ -72,9 +84,10 @@ public class FastaReaderToMySQL {
 			br = new BufferedReader(new FileReader(fastaFile));
 			String idSeq = "";
 			String seqDNA = "";
-			System.out.println("**** Processando o arquivo fasta");
+			System.out.println("**** Inserindo o arquivo fasta no MySQL");
 			
-			List<String> allQuery = new ArrayList<String>();
+			this.dao.beforeExecuteQuery();
+			
 			while ((line = br.readLine()) != null) {
 				numOfLine++;
 				this.allLines++;
@@ -86,15 +99,17 @@ public class FastaReaderToMySQL {
 					seqDNA = brokenFasta[0];
 				}
 				if (numOfLine%2 == 0){
-					String query = "INSERT INTO fasta_collect (id_seq, seq_dna, line, fasta_info) VALUES ('"+idSeq+"', '"+seqDNA+"',"
-							+ " "+this.lineNumber/2+", "+idFastaInfo+");";
-					allQuery.add(query);
-					idSeq = "";
-					seqDNA = "";
+					this.dao.insertFastaCollect(idSeq, seqDNA, this.lineNumber/2, idFastaInfo);
+					// Printando a cada 100 000 registro inseridos
+					if (this.lineNumber%200000 == 0){
+						System.out.println("Quantidade de registros inseridos: "+this.lineNumber/2);
+					}
 				}
 			}
-			System.out.println("**** Inserindo no MySQL...");
-			this.insertAllData(allQuery);
+			System.out.println("**** Fim da Inserção no MySQL...");
+			this.dao.afterExecuteQuery();
+			
+			System.out.println("**** Total de linhas inseridas no Banco: "+this.allLines/2);
 	 
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
@@ -111,20 +126,40 @@ public class FastaReaderToMySQL {
 		}
 	  }
 	
-	private void insertAllData(List<String> allData){
-		try{
-			this.dao.beforeExecuteQuery();
-			for (int i = 0; i < allData.size(); i++) {
-				this.dao.executeQuery(allData.get(i));
-				if (i%1000 == 0){
-					System.out.println("Quantidade de registros inseridos: "+i);
-				}
+	private long calcTimeExecution (long start, long end){
+		long totalTime = end - start;
+		NumberFormat formatter = new DecimalFormat("#0.00");
+		System.out.print("\n******** Tempo de execução: " 
+				+ formatter.format(totalTime / 1000d) + " segundos \n");
+		
+		return totalTime;
+	}
+	
+	/**
+	 * Cria um arquivo txt que informa o tempo de insercao de cada 
+	 * arquivo Fasta
+	 * 
+	 * @param fastaFile
+	 * @param timeExecution
+	 */
+	private void insertTimeTxtFile(String fastaFile, long timeExecution){
+		try {
+			 
+ 
+			File file = new File("insertTime.txt");
+ 
+			// if file doesnt exists, then create it
+			if (!file.exists()) {
+				file.createNewFile();
 			}
-			this.dao.afterExecuteQuery();
-			System.out.println("**** Total de linhas inseridas no Banco: "+this.allLines/2);
-		}catch (Exception e){
-			System.out.println("Erro ao executar a query :( \n"+e.getMessage());
+ 
+			FileWriter fw = new FileWriter(file.getAbsoluteFile());
+			BufferedWriter bw = new BufferedWriter(fw);
+			bw.write(fastaFile + '\t' + timeExecution );
+			bw.close();
+ 
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 	}
-
 }

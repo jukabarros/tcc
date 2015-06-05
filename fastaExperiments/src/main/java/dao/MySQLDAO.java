@@ -67,6 +67,24 @@ public class MySQLDAO {
 			System.out.println("Erro ao inserir o registro: :( \n"+e.getMessage());
 		}
 	}
+	
+	public void insertFastaCollect(String idSeq, String seqDNA, int line, int fastaInfo) throws SQLException{
+		try{
+			
+			query = "INSERT INTO fasta_collect (id_seq, seq_dna, line, fasta_info) VALUES (?,?,?,?);";
+			PreparedStatement queryExec = this.conn.prepareStatement(query);
+			queryExec.setString(1, idSeq);
+			queryExec.setString(2, seqDNA);
+			queryExec.setInt(3, line);
+			queryExec.setInt(4, fastaInfo);
+			queryExec.execute();
+			queryExec.close();
+			
+		}catch (Exception e){
+			System.out.println("Erro ao inserir o registro: :( \n"+e.getMessage());
+		}
+	}
+	
 	public int getIDFastaInfo(String fileName) throws SQLException{
 		beforeExecuteQuery();
 		
