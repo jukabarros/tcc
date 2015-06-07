@@ -159,26 +159,31 @@ public class CassandraDAO {
 		return listFastaContent;
 	}
 	
-	public void findByID(String id){
+	/**
+	 * Metodo que consulta um ID de um sequencia especifca em todo o banco
+	 * eh feita uma consulta para receber todos os arquivos existente no banco
+	 * e feita a consulta em cada tabela.
+	 * @param idSeq
+	 */
+	public void findByID(String idSeq){
 		this.beforeExecuteQuery();
-		this.query = "SELECT * FROM fastaCollect WHERE id = ?;";
-		PreparedStatement statement = this.session.prepare(query);
-		BoundStatement boundStatement = new BoundStatement(statement);
-		ResultSet results = this.session.execute(boundStatement.bind(id));
-		int line = 0;
-//		System.out.println(String.format("%-30s\t%-70s", "id", "seqDNA",
-//				"----------------+------------------------------------"));
-		List<FastaContent> listFastaInfo = new ArrayList<FastaContent>();
-		for (Row row : results) {
-//			System.out.println(String.format("%-30s\t%-70s", row.getString("id"), row.getString("seq_dna")));
-			FastaContent fastaInfo = new FastaContent(row.getString("id"), row.getString("seq_dna"), row.getInt("num_line"));
-			listFastaInfo.add(fastaInfo);
-			fastaInfo = null;
-			line++;
+		String query0 = "SELECT * FROM fasta_info;";
+		ResultSet results0 = this.session.execute(query0);
+		for (Row row0 : results0) {
+			String tableName = row0.getString("file_name").replace(".", "___");
+			
+			this.query = "SELECT * FROM "+tableName+" WHERE id_seq = ?;";
+			PreparedStatement statement = this.session.prepare(this.query);
+			BoundStatement boundStatement = new BoundStatement(statement);
+			ResultSet results = this.session.execute(boundStatement.bind(idSeq));
+			for (Row row : results) {
+				System.out.println("* ID de Sequência encontrado no arquivo "+row0.getString("file_name"));
+				System.out.println("ID de Sequência: "+row.getString("id_seq"));
+				System.out.println("Sequência DNA: "+row.getString("seq_dna"));
+				System.out.println("Linha: "+row.getInt("line"));
+			}
 		}
 		this.afterExecuteQuery();
-		System.out.println();
-		System.out.println("******* Quantidade de linhas: "+line);
 	}
 
 }
