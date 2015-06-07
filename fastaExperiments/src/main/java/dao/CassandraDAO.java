@@ -115,40 +115,48 @@ public class CassandraDAO {
 		}
 	}
 	
-	public void findByFileName(String fileName){
-		String tableName = fileName.replace("___", ".");
+	/**
+	 * Verifica se o arquivo consultado existe, atraves de uma consulta
+	 * na tabela fasta_info. Se existir faz a extracao do conteudo no metodo
+	 * extractFastaContent.
+	 * Lembrando que o nome da tabela ao inves de finalizar com .fa ou .fasta
+	 * está "___fa".
+	 * @param fileName
+	 * @return
+	 */
+	public List<FastaContent> findByFileName(String fileName){
 		this.beforeExecuteQuery();
 		this.query = "SELECT * FROM fasta_info WHERE file_name = ?;";
 		PreparedStatement statement = this.session.prepare(query);
 		BoundStatement boundStatement = new BoundStatement(statement);
-		ResultSet results = this.session.execute(boundStatement.bind(tableName));
+		ResultSet results = this.session.execute(boundStatement.bind(fileName));
+		List<FastaContent> listFastaContent = new ArrayList<FastaContent>();
 		if (!results.all().isEmpty()){
-			this.findByTable(tableName);
+			String tableName = fileName.replace(".", "___");
+			listFastaContent = this.extractFastaContent(tableName);
 		}else{
 			System.out.println("*** Conteúdo do arquivo não encontrado no Banco de dados :(");
 		}
 		this.afterExecuteQuery();
+		return listFastaContent;
 	}
 	
-	public void findByTable(String table){
-		
-		this.beforeExecuteQuery();
+	public List<FastaContent> extractFastaContent(String table){
 		this.query = "SELECT * FROM "+table;
 		ResultSet results = this.session.execute(query);
 		int line = 0;
 		List<FastaContent> listFastaContent = new ArrayList<FastaContent>();
 		for (Row row : results) {
-			FastaContent fastaContent = new FastaContent(row.getString("id"), row.getString("seq_dna"), row.getInt("num_line"));
+			FastaContent fastaContent = new FastaContent(row.getString("id_seq"), row.getString("seq_dna"), row.getInt("line"));
 			listFastaContent.add(fastaContent);
 			fastaContent = null;
 			line++;
 		}
 		if (listFastaContent.isEmpty()){
-			System.out.println("*** Conteúdo do arquivo não encontrado no Banco de dados :(");
+			System.out.println("*** Esse arquivo está vazio");
 		}
-		this.afterExecuteQuery();
-		System.out.println();
 		System.out.println("**** Quantidade de linhas: "+line);
+		return listFastaContent;
 	}
 	
 	public void findByID(String id){
