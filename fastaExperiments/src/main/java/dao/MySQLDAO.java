@@ -103,31 +103,17 @@ public class MySQLDAO {
 		
 	}
 	
-	/*
-	 * Metodos de consulta ao banco de dados retornam uma lista de FastaInfo
-	 * o qual é usado para gerar o arquivo de saida
-	 */
-	
-	public List<FastaContent> findAll() throws SQLException{
-		beforeExecuteQuery();
-		
-		query = "SELECT * FROM fasta_collect;";
+	private String getFileNameFastaInfo(int idFastaInfo) throws SQLException{
+		query = "SELECT * FROM fasta_info WHERE id = ?";
 		PreparedStatement queryExec = this.conn.prepareStatement(query);
+		queryExec.setInt(1, idFastaInfo);
 		ResultSet results = queryExec.executeQuery();
-		int line = 0;
-		List<FastaContent> listFastaInfo = new ArrayList<FastaContent>();
+		String fileName = null;
 		while (results.next()){
-			FastaContent fastaInfo = new FastaContent(results.getString(1), results.getString(2), results.getInt(3));
-			listFastaInfo.add(fastaInfo);
-			fastaInfo = null;
-			line++;
+			fileName = results.getString(2);
 		}
 		
-		afterExecuteQuery();
-		
-		System.out.println();
-		System.out.println("***** Quantidade de registros: "+line);
-		return listFastaInfo;
+		return fileName;
 		
 	}
 	
@@ -165,29 +151,29 @@ public class MySQLDAO {
 		
 	}
 	
-	public List<FastaContent> findByID(String idSeqDNA) throws SQLException{
+	public void findByID(String idSeqDNA) throws SQLException{
 		
 		beforeExecuteQuery();	
-		query = "SELECT id_seq, seq_dna, line FROM fasta_collect WHERE id_seq = ?";
+		query = "SELECT * FROM fasta_collect WHERE id_seq = ?";
 		PreparedStatement queryExec = this.conn.prepareStatement(query);
 		queryExec.setString(1, idSeqDNA);
 		ResultSet results = queryExec.executeQuery();
-		int line = 0;
 		List<FastaContent> listFastaContent = new ArrayList<FastaContent>();
 		while (results.next()){
-			FastaContent fastaInfo = new FastaContent(results.getString(1), results.getString(2), results.getInt(3));
+			// id fasta_info
+			String fileName = this.getFileNameFastaInfo(results.getInt(5));
+			System.out.println("ID de Sequência encontrado no arquivo "+fileName);
+			System.out.println("ID: "+results.getString(2));
+			System.out.println("Sequência: "+results.getString(3));
+			System.out.println("Linha: "+ results.getInt(4));
+			FastaContent fastaInfo = new FastaContent(results.getString(2), results.getString(3), results.getInt(4));
 			listFastaContent.add(fastaInfo);
-			fastaInfo = null;
-			line++;
 		}
 		if (listFastaContent.isEmpty()){
 			System.out.println("*** ID não encontrado no Banco de dados :(");
 		}
 		afterExecuteQuery();
-		System.out.println();
-		System.out.println("**** Quantidade de linhas: "+line);
 		
-		return listFastaContent;
 		
 	}
 

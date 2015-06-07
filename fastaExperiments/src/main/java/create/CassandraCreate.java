@@ -110,6 +110,7 @@ public class CassandraCreate {
 	public static void main(String[] args) throws IOException {
 		long startTime = System.currentTimeMillis();
 		CassandraCreate create = new CassandraCreate();
+		System.out.println("**** CRIANDO AMBIENTE DO CASSANDRA ****");
 		create.truncateTable("fastaCollect");
 		System.out.println("OK");
 		create.dropKeyspace();

@@ -3,6 +3,7 @@ package dao;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
@@ -42,11 +43,11 @@ public class MongoDBDAO {
 		this.dbCollection = null;
 	}
 	
-	public void insertData(String id, String seqDna, int line) throws IOException{
+	public void insertData(String idSeq, String seqDna, int line) throws IOException{
 		/**** Insert ****/
 		// create a document to store key and value
 		BasicDBObject document = new BasicDBObject();
-		document.put("id", id);
+		document.put("idSeq", idSeq);
 		document.put("seqDna", seqDna);
 		document.put("line", line);
 		this.dbCollection.insert(document);
@@ -60,15 +61,13 @@ public class MongoDBDAO {
 	 * @throws IOException
 	 */
 	public List<FastaContent> findByCollection(String collection) throws IOException{
-		/**** Find and display ****/
 		this.dbCollection = this.mongoDBCreate.getCollection(collection);
 		DBCursor cursor = this.dbCollection.find();
 		List<FastaContent> listFastaContent = new ArrayList<FastaContent>();
 		while (cursor.hasNext()) {
-			// Daqui mandar para a lista de Fasta_Info
-//			FastaContent fastaContent = new FastaContent(id, seqDNA, line)
-			System.out.println(cursor.next());
-			break;
+		    BasicDBObject obj = (BasicDBObject) cursor.next();
+			FastaContent fastaContent = new FastaContent(obj.getString("idSeq"), obj.getString("seqDna"), obj.getInt("line"));
+			listFastaContent.add(fastaContent);
 		}
 		if (listFastaContent.isEmpty()){
 			System.out.println("*** Conteúdo do arquivo não encontrado no Banco de dados :(");
@@ -82,15 +81,27 @@ public class MongoDBDAO {
 	 * @param id
 	 * @throws IOException
 	 */
-	public void findByID(String id) throws IOException{
-		/**** Find and display ****/
+	public void findByID(String idSeq) throws IOException{
 		BasicDBObject searchQuery = new BasicDBObject();
-		searchQuery.put("id", id);
-
-		DBCursor cursor = this.dbCollection.find(searchQuery);
-
-		while (cursor.hasNext()) {
-			System.out.println(cursor.next());
+		searchQuery.put("idSeq", idSeq);
+		Set<String> allCollections = this.mongoDBCreate.listAllColection();
+		String[] listAllCollections = allCollections.toArray(new String [allCollections.size()]);
+		List<FastaContent> listFastaContent = new ArrayList<FastaContent>();
+		for (int i = 0; i < listAllCollections.length; i++) {
+			this.dbCollection = this.mongoDBCreate.getCollection(listAllCollections[i]);
+			DBCursor cursor = this.dbCollection.find(searchQuery);
+			while (cursor.hasNext()) {
+				System.out.println("** ID encontrado na coleção "+listAllCollections[i]);
+				BasicDBObject obj = (BasicDBObject) cursor.next();
+				System.out.println("ID: "+obj.getString("idSeq"));
+				System.out.println("Sequência: "+obj.getString("seqDna"));
+				System.out.println("Linha: "+obj.getInt("line"));
+				FastaContent fastaContent = new FastaContent(obj.getString("idSeq"), obj.getString("seqDna"), obj.getInt("line"));
+				listFastaContent.add(fastaContent);
+			}
+		}
+		if (listFastaContent.isEmpty()){
+			System.out.println("*** ID de Sequência não encontrado no Banco de dados :(");
 		}
 	}
 	
@@ -103,5 +114,5 @@ public class MongoDBDAO {
 			System.out.println(cursor.next());
 		}
 	}
-
+	
 }

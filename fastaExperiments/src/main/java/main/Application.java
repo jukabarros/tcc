@@ -60,17 +60,20 @@ public class Application {
 			break;
 		}
 		int srsSize = Integer.parseInt(prop.getProperty("srs.quantity"));
-		System.out.println("Tamanho da SRS: "+srsSize);
-		String bd = prop.getProperty("database").toUpperCase();
+		System.out.println("* Tamanho da SRS: "+srsSize);
+		String db = prop.getProperty("database").toUpperCase();
+		System.out.println("* Banco de Dados: "+db);
 		String insertData = prop.getProperty("insert.data").toUpperCase();
+		System.out.println("* Insert Data: "+insertData);
 		String idSeqDNA = prop.getProperty("id.seqDNA");
-		String extractToFile = prop.getProperty("extract.file").toUpperCase();
+		String extractData = prop.getProperty("extract.data").toUpperCase();
+		System.out.println("* Extract To File: "+extractData);
 		List<FastaContent> listFastaContent = new ArrayList<FastaContent>();
 		long startTime = System.currentTimeMillis();
 		/*
 		 * INSERINDO / EXTRAINDO DO BD
 		 */
-		if(bd.equals("CASSANDRA")){
+		if(db.equals("CASSANDRA")){
 			if(insertData.equals("YES")){
 				
 				CassandraCreate.main(null);
@@ -86,40 +89,35 @@ public class Application {
 				}
 			}
 
-		}else if (bd.equals("MONGODB")){
+		}else if (db.equals("MONGODB")){
 			if(insertData.equals("YES")){
 				MongoDBCreate.main(null);
 				FastaReaderToMongoDB frToMongo = new FastaReaderToMongoDB();
 				frToMongo.readFastaDirectory(fastaDirectory);
 			}else{
 				MongoDBDAO dao = new MongoDBDAO();
-				if (extractToFile.equals("YES")){
-					System.out.println("\n**** Extraindo o conteudo: "+fileNameOutput);
+				if (extractData.equals("YES")){
+					System.out.println("\n**** Extraindo o conteudo de "+fileNameOutput);
 					listFastaContent = dao.findByCollection(fileNameOutput);
 				}else{
+					System.out.println("\n**** Consultando por id de sequencia: "+idSeqDNA);
 					dao.findByID(idSeqDNA);
 				}
 			}
 
-		}else if (bd.equals("MYSQL")){
+		}else if (db.equals("MYSQL")){
 			if(insertData.equals("YES")){
 				MySQLCreate.main(null);
 				FastaReaderToMySQL frToMySQL = new FastaReaderToMySQL();
 				frToMySQL.readFastaDirectory(fastaDirectory);
 			}else{
 				MySQLDAO dao = new MySQLDAO();
-				if (extractToFile.equals("YES")){
-					System.out.println("\n**** Extraindo o conteudo: "+fileNameOutput);
+				if (extractData.equals("YES")){
+					System.out.println("\n**** Extraindo o conteudo de "+fileNameOutput);
 					listFastaContent = dao.findByFilename(fileNameOutput);
 				}else{
-					listFastaContent =  dao.findByID(idSeqDNA);
-					System.out.println("\n**** Registro(s) encontrados com ID: "+idSeqDNA);
-					for (int i = 0; i < listFastaContent.size(); i++) {
-						System.out.println("\nID: "+listFastaContent.get(i).getId());
-						System.out.println("Seq DNA: "+listFastaContent.get(i).getSeqDNA());
-						System.out.println("Linha: "+listFastaContent.get(i).getLine());
-					}
-					
+					System.out.println("\n**** Consultando por id de sequencia: "+idSeqDNA);
+					dao.findByID(idSeqDNA);
 				}
 			}
 
@@ -131,10 +129,11 @@ public class Application {
 		app.calcTimeExecution(startTime, endTime);
 
 		/*
-		 * CRIANDO O ARQUIVO DE SAIDA .fasta ou .fa
+		 * CRIANDO O ARQUIVO DE SAIDA .fasta ou .fa 
+ 		 * somente no caso da extração
 		 */
 		String createOutputFile = prop.getProperty("create.output.file").toUpperCase();
-		if (createOutputFile.equals("YES")){
+		if (createOutputFile.equals("YES") && extractData.equals("YES")){
 			if (listFastaContent.isEmpty()){
 				System.out.println("*** Não foi possível gerar o arquivo fasta.\n"
 						+ "Para Gerar o arquivo fasta é necessário realizar a extração do Banco de Dados.\n"

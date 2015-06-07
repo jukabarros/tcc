@@ -104,7 +104,7 @@ public class MySQLCreate {
 	// Prepara o ambiente do MySQL
 	public static void main(String[] args) throws SQLException, IOException {
 		MySQLCreate mc = new MySQLCreate();
-		
+		System.out.println("**** CRIANDO AMBIENTE DO MYSQL ****");
 		mc.dropDatabase();
 		
 		mc.createDatabase();

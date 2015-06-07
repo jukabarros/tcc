@@ -47,6 +47,7 @@ public class MongoDBCreate {
 	
 	public static void main(String[] args) throws IOException {
 		try {
+			System.out.println("**** CRIANDO AMBIENTE DO MONGODB ****");
 			System.out.println("Excluindo o Banco de Dados");
 			ConnectMongoDB mongoCon = new ConnectMongoDB();
 			mongoCon.dropDatabase();
