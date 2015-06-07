@@ -13,6 +13,7 @@ import com.datastax.driver.core.Session;
 
 import config.ConnectCassandra;
 import config.ReadProperties;
+import create.CassandraCreate;
 import dna.FastaContent;
 
 public class CassandraDAO {
@@ -21,6 +22,7 @@ public class CassandraDAO {
 	private Session session;
 	private String query;
 	private String keyspace;
+	private CassandraCreate cassandraCreate;
 	
 	public CassandraDAO() throws IOException {
 		super();
@@ -29,6 +31,7 @@ public class CassandraDAO {
 		this.query = null;
 		Properties prop = ReadProperties.getProp();
 		this.keyspace =  prop.getProperty("cassandra.keyspace");
+		this.cassandraCreate = new CassandraCreate();
 	}
 	
 	public void beforeExecuteQuery(){
@@ -69,17 +72,83 @@ public class CassandraDAO {
 		System.out.println("******* Quantidade de linhas: "+line);
 	}
 	
-	public void insert(String id, String seqDna){
+	/**
+	 * Insere o conteudo do arquivo fasta na tabela referente ao arquivo
+	 * essa tabela possui o mesmo nome do arquivo
+	 * @param table
+	 * @param id
+	 * @param seqDna
+	 * @param line
+	 */
+	public void insertData(String table, String idSeq, String seqDna, int line){
 		try{
-			
-			this.query = "INSERT INTO fastaCollect (id, seq_dna) VALUES (?, ?);";
+			String tableName = table.replace(".", "___");
+			this.query = "INSERT INTO "+tableName+" (id_seq, seq_dna, line) VALUES (?, ?, ?);";
 			PreparedStatement statement = this.session.prepare(query);
 			BoundStatement boundStatement = new BoundStatement(statement);
-			this.session.execute(boundStatement.bind(id, seqDna));
+			this.session.execute(boundStatement.bind(idSeq, seqDna, line));
 			
 		}catch (Exception e){
 			System.out.println("Erro ao executar a query: :("+e.getMessage());
 		}
+	}
+	
+	/**
+	 * Insere as informacoes do arquivo fasta na tabela fasta_info, que vai servir
+	 * como index para os arquivos que serão inseridos
+	 * 
+	 * @param fileName
+	 * @param size
+	 * @param comment
+	 */
+	public void insertFastaInfo(String fileName, double size, String comment){
+		try{
+			this.beforeExecuteQuery();
+			this.query = "INSERT INTO fasta_info (file_name, size, comment) VALUES (?, ?, ?);";
+			PreparedStatement statement = this.session.prepare(query);
+			BoundStatement boundStatement = new BoundStatement(statement);
+			this.session.execute(boundStatement.bind(fileName, size, comment));
+			this.afterExecuteQuery();
+			this.cassandraCreate.createTable(fileName);
+		}catch (Exception e){
+			System.out.println("Erro ao executar a query: :("+e.getMessage());
+		}
+	}
+	
+	public void findByFileName(String fileName){
+		String tableName = fileName.replace("___", ".");
+		this.beforeExecuteQuery();
+		this.query = "SELECT * FROM fasta_info WHERE file_name = ?;";
+		PreparedStatement statement = this.session.prepare(query);
+		BoundStatement boundStatement = new BoundStatement(statement);
+		ResultSet results = this.session.execute(boundStatement.bind(tableName));
+		if (!results.all().isEmpty()){
+			this.findByTable(tableName);
+		}else{
+			System.out.println("*** Conteúdo do arquivo não encontrado no Banco de dados :(");
+		}
+		this.afterExecuteQuery();
+	}
+	
+	public void findByTable(String table){
+		
+		this.beforeExecuteQuery();
+		this.query = "SELECT * FROM "+table;
+		ResultSet results = this.session.execute(query);
+		int line = 0;
+		List<FastaContent> listFastaContent = new ArrayList<FastaContent>();
+		for (Row row : results) {
+			FastaContent fastaContent = new FastaContent(row.getString("id"), row.getString("seq_dna"), row.getInt("num_line"));
+			listFastaContent.add(fastaContent);
+			fastaContent = null;
+			line++;
+		}
+		if (listFastaContent.isEmpty()){
+			System.out.println("*** Conteúdo do arquivo não encontrado no Banco de dados :(");
+		}
+		this.afterExecuteQuery();
+		System.out.println();
+		System.out.println("**** Quantidade de linhas: "+line);
 	}
 	
 	public void findByID(String id){

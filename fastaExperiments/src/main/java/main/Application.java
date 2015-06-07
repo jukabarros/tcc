@@ -82,9 +82,11 @@ public class Application {
 				
 			}else{
 				CassandraDAO dao = new CassandraDAO();
-				if (idSeqDNA.equals("0")){
-					dao.findAll();
+				if (extractData.equals("YES")){
+					System.out.println("\n**** Extraindo o conteudo de "+fileNameOutput);
+//					listFastaContent = dao.findByTable(fileNameOutput);
 				}else{
+					System.out.println("\n**** Consultando por id de sequencia: "+idSeqDNA);
 					dao.findByID(idSeqDNA);
 				}
 			}

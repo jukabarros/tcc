@@ -1,8 +1,6 @@
 package create;
 
 import java.io.IOException;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
 import java.util.Properties;
 
 import com.datastax.driver.core.Session;
@@ -40,7 +38,8 @@ public class CassandraCreate {
 		this.connCassandra.connect();
 		this.session = this.connCassandra.getCluster().connect();
 		try{
-			System.out.println("Creating keyspace "+this.keyspace);
+			System.out.println("* Criando o keyspace "+this.keyspace);
+			System.out.println("* Fator de Replica: "+this.replicationFactor);
 			this.query = "CREATE KEYSPACE IF NOT EXISTS "+this.keyspace+" WITH replication = {'class':'SimpleStrategy',"
 					+ " 'replication_factor':"+this.replicationFactor+"};";
 			this.session.execute(this.query);
@@ -57,9 +56,10 @@ public class CassandraCreate {
 	public void createTableFastaInfo(){
 		this.connCassandra.connect();
 		this.session = this.connCassandra.getCluster().connect();
-		System.out.println("Creating table fasta_info");
+		System.out.println("* Criando a tabela fasta_info");
 		try{
-			this.query = "CREATE TABLE IF NOT EXISTS "+this.keyspace+".fastaInfo (fasta_name text PRIMARY KEY, num_line bigint)";
+			this.query = "CREATE TABLE IF NOT EXISTS "+this.keyspace+".fasta_info"
+					+ " (file_name text PRIMARY KEY, size double, comment text)";
 			this.session.execute(this.query);
 		}catch (Exception e){
 			System.out.println("Erro ao criar a tabela: "+e.getMessage());
@@ -67,13 +67,17 @@ public class CassandraCreate {
 		this.connCassandra.close();
 	}
 	
-	public void createTables(){
+	/*
+	 * Tabela que recebe o mesmo nome do arquivo onde troca o .fa para -_fa
+	 * pois o cassandra nao permite tabela com o "."
+	 */
+	public void createTable(String table){
 		this.connCassandra.connect();
 		this.session = this.connCassandra.getCluster().connect();
-		System.out.println("Creating tables...");
 		try{
-			this.query = "CREATE TABLE IF NOT EXISTS "+this.keyspace+".fastaCollect "
-					+ "(id text PRIMARY KEY, seq_dna text, num_line bigint)";
+			String tableName = table.replace(".", "___");
+			this.query = "CREATE TABLE IF NOT EXISTS "+this.keyspace+"."+tableName+""
+					+ "(id_seq text PRIMARY KEY, seq_dna text, line int)";
 			this.session.execute(this.query);
 		}catch (Exception e){
 			System.out.println("Erro ao criar a tabela: "+e.getMessage());
@@ -84,7 +88,7 @@ public class CassandraCreate {
 	public void dropKeyspace(){
 		this.connCassandra.connect();
 		this.session = this.connCassandra.getCluster().connect();
-		System.out.println("Dropping Keyspace "+this.keyspace);
+		System.out.println("* Deletando o Keyspace "+this.keyspace);
 		try{
 			this.query = "DROP KEYSPACE IF EXISTS "+this.keyspace+"";
 			this.session.execute(this.query);
@@ -94,12 +98,12 @@ public class CassandraCreate {
 		this.connCassandra.close();
 	}
 	
-	public void truncateTable(String table){
+	public void truncateTableFastaInfo(){
 		this.connCassandra.connect();
 		this.session = this.connCassandra.getCluster().connect();
 		try{
-			System.out.println("Cleaning table: "+table);
-			this.query = "TRUNCATE "+this.keyspace+"."+table;
+			System.out.println("* Limpando a tabela fasta_info");
+			this.query = "TRUNCATE "+this.keyspace+".fasta_info";
 			this.session.execute(this.query);
 		}catch (Exception e){
 			System.out.println("Erro ao limpar a tabela: "+e.getMessage());
@@ -108,24 +112,16 @@ public class CassandraCreate {
 	}
 
 	public static void main(String[] args) throws IOException {
-		long startTime = System.currentTimeMillis();
 		CassandraCreate create = new CassandraCreate();
 		System.out.println("**** CRIANDO AMBIENTE DO CASSANDRA ****");
-		create.truncateTable("fastaCollect");
-		System.out.println("OK");
 		create.dropKeyspace();
 		System.out.println("OK");
 		create.createKeyspace();
-//		System.out.println("OK");
-//		create.createTableFastaInfo();
 		System.out.println("OK");
-		create.createTables();
+		create.createTableFastaInfo();
 		System.out.println("OK");
-		long endTime = System.currentTimeMillis();
-		
-		long totalTime = endTime - startTime;
-		NumberFormat formatter = new DecimalFormat("#0.00");
-		System.out.print("******** EXECUTION TIME: " + formatter.format(totalTime / 1000d) + " segundos\n");
+		create.truncateTableFastaInfo();
+		System.out.println("OK");
 
 	}
 
