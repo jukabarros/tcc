@@ -1,6 +1,5 @@
 package file;
 
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -19,13 +18,18 @@ import dna.FastaContent;
 public class OutputFasta {
 	
 	private FileWriter fw;
-	private BufferedWriter bw;
 	private File file;
+	
+	// Lista do conteudo que sera escrito
+	private List<FastaContent> allFastaContent;
+	// Lista que ordena o conteudo vindo do bd
+	private List<Integer> order;
 	
 	public OutputFasta() throws IOException {
 		this.fw = null;
-		this.bw = null;
 		this.file = null;
+		this.allFastaContent = new ArrayList<FastaContent>();
+		this.order = new ArrayList<Integer>();
 	}
 	
 	public void createFastaFile(String filename) throws IOException{
@@ -34,8 +38,7 @@ public class OutputFasta {
 		if (!file.exists()) {
 			file.createNewFile();
 		}
-		this.fw = new FileWriter(this.file.getAbsoluteFile());
-		this.bw = new BufferedWriter(fw);
+		this.fw = new FileWriter(this.file.getAbsoluteFile(), true);
 	}
 	
 	
@@ -51,20 +54,18 @@ public class OutputFasta {
 	 * @param listFastaInfo 
 	 */
 	public void prepareFastaFile(List<FastaContent> listFastaContent){
-		List<Integer> order = new ArrayList<Integer>();
-		Map<Integer, String> orderSequence = new HashMap<Integer, String>();
 		
-		for (int i = 0; i < listFastaContent.size(); i++) {
+		Map<Integer, String> orderSequence = new HashMap<Integer, String>();
+		for (int i = 0; i < this.allFastaContent.size(); i++) {
 			int position = listFastaContent.get(i).getLine();
 			String content = listFastaContent.get(i).getId()+":"+listFastaContent.get(i).getSeqDNA();
 			orderSequence.put(position, content);
-			order.add(position);
+			this.order.add(position);
 		}
-
-		Collections.sort(order);
+		Collections.sort(this.order);
 		
-		for (int i = 0; i < order.size(); i++) {
-			String value = orderSequence.get(order.get(i));
+		for (int i = 0; i < this.order.size(); i++) {
+			String value = orderSequence.get(this.order.get(i));
 			String[] brokenValue = value.split(":");
 			String	id = brokenValue[0];
 			String	seqDNA = brokenValue[1];
@@ -81,7 +82,7 @@ public class OutputFasta {
 	 */
 	public void writeFastaFile(String id, String seqDNA){
 		try {
-			this.bw.write(id+'\n'+seqDNA+'\n');
+			this.fw.write(id+'\n'+seqDNA+'\n');
 		} catch (IOException ex) {
 			System.out.println("Erro na criação do arquivo fasta: "+ex.getMessage());
 		} 
@@ -89,6 +90,14 @@ public class OutputFasta {
 	}
 	
 	public void closeFastaFile() throws IOException{
-		this.bw.close();
+		this.fw.close();
+	}
+
+	public List<FastaContent> getAllFastaContent() {
+		return allFastaContent;
+	}
+
+	public void setAllFastaContent(List<FastaContent> allFastaContent) {
+		this.allFastaContent = allFastaContent;
 	}
 }

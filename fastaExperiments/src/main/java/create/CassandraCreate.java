@@ -59,7 +59,7 @@ public class CassandraCreate {
 		System.out.println("* Criando a tabela fasta_info");
 		try{
 			this.query = "CREATE TABLE IF NOT EXISTS "+this.keyspace+".fasta_info"
-					+ " (file_name text PRIMARY KEY, size double, comment text)";
+					+ " (file_name text PRIMARY KEY, size double, comment text, num_line bigint)";
 			this.session.execute(this.query);
 		}catch (Exception e){
 			System.out.println("Erro ao criar a tabela: "+e.getMessage());

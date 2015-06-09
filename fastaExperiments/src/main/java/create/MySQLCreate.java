@@ -59,7 +59,7 @@ public class MySQLCreate {
 			Connection conectar = new ConnectMySQL().connectMysql(this.database);
 			System.out.println("Criando a tabela: fasta_info");
 			this.query = "CREATE TABLE IF NOT EXISTS fasta_info (id INT NOT NULL AUTO_INCREMENT,"
-					+ " file_name VARCHAR(52), size DOUBLE(50,3),"
+					+ " file_name VARCHAR(52), size DOUBLE(50,3), num_line BIGINT(20), "
 					+ " comment VARCHAR (200), PRIMARY KEY (id));";
 			PreparedStatement queryExec0 = conectar.prepareStatement(this.query);
 			queryExec0.execute();
@@ -67,7 +67,7 @@ public class MySQLCreate {
 
 			System.out.println("Criando a tabela: fasta_collect");
 			this.query = "CREATE TABLE IF NOT EXISTS fasta_collect (id INT PRIMARY KEY AUTO_INCREMENT,"
-					+ "id_seq VARCHAR(50), seq_dna VARCHAR(52), line INT(50), fasta_info INT, "
+					+ "id_seq TEXT, seq_dna TEXT, line INT(50), fasta_info INT, "
 					+ "FOREIGN KEY fasta_collect (fasta_info)"
 					+ " REFERENCES fasta_info (id) ON DELETE CASCADE);";
 			

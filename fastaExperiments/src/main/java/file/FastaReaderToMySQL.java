@@ -34,7 +34,7 @@ public class FastaReaderToMySQL {
 	private BufferedWriter bwMySQLInsertTime;
 	
 	
-	public FastaReaderToMySQL() {
+	public FastaReaderToMySQL() throws IOException {
 		super();
 		this.allLines = 0;
 		this.lineNumber = 0;
@@ -74,9 +74,13 @@ public class FastaReaderToMySQL {
 					this.readFastaFile(file.getAbsolutePath(), idFastaInfo);
 					long endTime = System.currentTimeMillis();
 					
+					// Atualizando o numero de linhas no arquivo
+					this.dao.updateNumOfLinesFastaInfo(file.getName(), this.lineNumber/2);
+					
 					// Calculando o tempo de insercao de cada arquivo
 					String timeExecutionSTR = this.calcTimeExecution(startTime, endTime);
-					this.bwMySQLInsertTime.write(file.getName() + '\t' + timeExecutionSTR + '\n');
+					this.bwMySQLInsertTime.write(file.getName() + '\t' + "tempo: "+'\t'+timeExecutionSTR 
+							+" Qntd de Linhas: "+this.lineNumber/2+'\n');
 					
 					System.out.println("** Fim da leitura do arquivo: "+file.getName());
 				}else {

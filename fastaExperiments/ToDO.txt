@@ -1,8 +1,8 @@
 FAZER 28/05/2015:
 
-1. Criar esquema relacional para o MySQL 
+1. Criar esquema relacional para o MySQL (OK)
 
-2. Criar implementacao dinamica para o Cassandra
+2. Criar implementacao dinamica para o Cassandra (OK)
 
 3. Começar implementacao para o mongoDB (OK)
 
@@ -11,3 +11,8 @@ FAZER 28/05/2015:
 5. Verificar os parametros no .properties (OK)
 
 6. Implementar o arquivo fasta de Saida, ver a questao da SRRs
+
+7. Implementar extracao de arquivos grandes
+	MySQL (OK)
+	MongoDB
+	Cassandra

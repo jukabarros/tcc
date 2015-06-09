@@ -12,16 +12,21 @@ import java.util.Properties;
 import config.ConnectMySQL;
 import config.ReadProperties;
 import dna.FastaContent;
+import file.OutputFasta;
 
-public class MySQLDAO {
+public class MySQLDAO{
 	
 	private String query;
 	
 	private Connection conn;
 	
-	public MySQLDAO() {
+	private List<FastaContent> listFastaContents;
+	
+	
+	public MySQLDAO() throws IOException {
 		this.query = null;
 		this.conn = null;
+		this.listFastaContents = new ArrayList<FastaContent>();
 	}
 	
 	/*
@@ -85,6 +90,28 @@ public class MySQLDAO {
 		}
 	}
 	
+	/**
+	 * Atualiza o numero de linhas existente em um arquivo
+	 * apos a sua leitura.
+	 * @param fileName
+	 * @param numOfLines
+	 * @throws SQLException
+	 */
+	public void updateNumOfLinesFastaInfo(String fileName, int numOfLines) throws SQLException{
+		try{
+			this.beforeExecuteQuery();
+			this.query = "UPDATE fasta_info SET num_line = ? WHERE file_name = ?;";
+			PreparedStatement queryExec = this.conn.prepareStatement(this.query);
+			queryExec.setInt(1, numOfLines);
+			queryExec.setString(2, fileName);
+			queryExec.execute();
+			queryExec.close();
+			this.afterExecuteQuery();
+		}catch (Exception e){
+			System.out.println("Erro ao atualizar o numero de linhas :( \n"+e.getMessage());
+		}
+	}
+	
 	public int getIDFastaInfo(String fileName) throws SQLException{
 		beforeExecuteQuery();
 		
@@ -103,6 +130,12 @@ public class MySQLDAO {
 		
 	}
 	
+	/**
+	 * Metodo retorna o nome do arquivo que foi consultado por ID
+	 * @param idFastaInfo
+	 * @return
+	 * @throws SQLException
+	 */
 	private String getFileNameFastaInfo(int idFastaInfo) throws SQLException{
 		query = "SELECT * FROM fasta_info WHERE id = ?";
 		PreparedStatement queryExec = this.conn.prepareStatement(query);
@@ -118,35 +151,91 @@ public class MySQLDAO {
 	}
 	
 	/**
+	 * Metodo retorna o nome do arquivo que foi consultado por ID
+	 * @param idFastaInfo
+	 * @return
+	 * @throws SQLException
+	 */
+	private Integer getNumOfLinesFastaInfo(int idFastaInfo) throws SQLException{
+		this.query = "SELECT * FROM fasta_info WHERE id = ?";
+		PreparedStatement queryExec = this.conn.prepareStatement(this.query);
+		queryExec.setInt(1, idFastaInfo);
+		ResultSet results = queryExec.executeQuery();
+		int numOfLine = 0;
+		while (results.next()){
+			numOfLine = results.getInt(4);
+		}
+		
+		return numOfLine;
+		
+	}
+	
+	/**
 	 * Retorna o conteudo de um arquivo especifico
 	 * @param fileName
 	 * @return
 	 * @throws SQLException
+	 * @throws IOException 
 	 */
-	public List<FastaContent> findByFilename(String fileName) throws SQLException{
+	public List<FastaContent> findByFilename(String fileName) throws SQLException, IOException{
 		// Recuperando o id do arquivo
 		int fileID = this.getIDFastaInfo(fileName);
-		
-		beforeExecuteQuery();		
-		query = "SELECT id_seq, seq_dna, line FROM fasta_collect WHERE fasta_info = ?;";
-		PreparedStatement queryExec = this.conn.prepareStatement(query);
-		queryExec.setInt(1, fileID);
-		ResultSet results = queryExec.executeQuery();
-		int line = 0;
+		OutputFasta outputFasta = new OutputFasta();
 		List<FastaContent> listFastaContent = new ArrayList<FastaContent>();
-		while (results.next()){
-			FastaContent fastaInfo = new FastaContent(results.getString(1), results.getString(2), results.getInt(3));
-			listFastaContent.add(fastaInfo);
-			fastaInfo = null;
-			line++;
+		beforeExecuteQuery();
+		// recupera o numero total de linhas para ver se eh necessario fazer a extracao por partes
+		Integer numOfLine = this.getNumOfLinesFastaInfo(fileID);
+		System.out.println("*** Criando o arquivo: "+fileName);
+		outputFasta.createFastaFile(fileName);
+		if (numOfLine <= 500000){
+			this.query = "SELECT TRIM(id_seq), TRIM(seq_dna) FROM fasta_collect WHERE fasta_info = ?;";
+			PreparedStatement queryExec = this.conn.prepareStatement(this.query);
+			queryExec.setInt(1, fileID);
+			ResultSet results = queryExec.executeQuery();
+			while (results.next()){
+				// Escrever o arquivo diretamente e ordernado??
+//				FastaContent fastaInfo = new FastaContent(results.getString(1), results.getString(2), results.getInt(3));
+//				listFastaContent.add(fastaInfo);
+//				fastaInfo = null;
+				outputFasta.writeFastaFile(results.getString(1), results.getString(2));
+			}
+		}else{
+			int numOfRecords = 0;
+			int numParts = numOfLine/500000;
+			for (int i = 0; i < numParts; i++) {
+				if (i == (numParts - 1)){
+					// Ultima parte da divisao
+					this.query = "SELECT TRIM(id_seq), TRIM(seq_dna) FROM "
+							+ "fasta_collect WHERE fasta_info = ? LIMIT "+numOfRecords+", "+numOfLine+";";
+					
+				}else{
+					this.query = "SELECT TRIM(id_seq), TRIM(seq_dna) FROM "
+							+ "fasta_collect WHERE fasta_info = ? LIMIT "+numOfRecords+", 500000;";
+				}
+				numOfRecords += 500000;
+				PreparedStatement queryExec = this.conn.prepareStatement(this.query);
+				queryExec.setInt(1, fileID);
+				ResultSet results = queryExec.executeQuery();
+				System.out.println("* Registros escritos: "+numOfRecords);
+				while (results.next()){
+					outputFasta.writeFastaFile(results.getString(1), results.getString(2));
+				}
+				System.out.println("OK");
+
+				queryExec = null;
+				results = null;
+				this.query = null;
+			}
 		}
 		if (listFastaContent.isEmpty()){
 			System.out.println("*** Conteúdo do arquivo não encontrado no Banco de dados :(");
 		}
+		
+		outputFasta.closeFastaFile();
 		afterExecuteQuery();
 		
 		System.out.println();
-		System.out.println("**** Quantidade de registros: "+line);
+		System.out.println("**** Quantidade de registros: "+numOfLine);
 		return listFastaContent;
 		
 	}
@@ -175,6 +264,24 @@ public class MySQLDAO {
 		afterExecuteQuery();
 		
 		
+	}
+
+	
+	
+	public Connection getConn() {
+		return conn;
+	}
+
+	public void setConn(Connection conn) {
+		this.conn = conn;
+	}
+
+	public List<FastaContent> getListFastaContents() {
+		return listFastaContents;
+	}
+
+	public void setListFastaContents(List<FastaContent> listFastaContents) {
+		this.listFastaContents = listFastaContents;
 	}
 
 }
