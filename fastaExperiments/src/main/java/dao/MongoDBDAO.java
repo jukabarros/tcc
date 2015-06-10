@@ -11,6 +11,7 @@ import com.mongodb.DBCursor;
 
 import create.MongoDBCreate;
 import dna.FastaContent;
+import file.OutputFasta;
 
 public class MongoDBDAO {
 	
@@ -38,6 +39,7 @@ public class MongoDBDAO {
 		document.put("file_name", fileName);
 		document.put("size", size);
 		document.put("comment", comment);
+		document.put("num_lines", 0);
 		this.dbCollection.insert(document);
 		
 		this.dbCollection = null;
@@ -54,25 +56,91 @@ public class MongoDBDAO {
 	}
 	
 	/**
+	 * Atualiza o numero de linhas de um arquivo na colecao fasta_info
+	 * @param fileName
+	 * @param numOfLines
+	 * @throws IOException
+	 */
+	public void updateNumOfLines(String fileName, int numOfLines) throws IOException{
+		/**** Update ****/
+		BasicDBObject newDocument = new BasicDBObject();
+		newDocument.append("$set", new BasicDBObject().append("num_lines", numOfLines));
+	 
+		BasicDBObject searchQuery = new BasicDBObject().append("file_name", fileName);
+	 
+		this.mongoDBCreate.getCollection("fasta_info").update(searchQuery, newDocument);
+	}
+	
+	/**
+	 * Retorna o numero de linhas de uma colecao especifica, a fim de verificar
+	 * se vai ser necessario realizar consultar por paginacao
+	 * @param collection
+	 * @throws IOException
+	 */
+	public int getNumberOfLines(String fileName) throws IOException{
+		this.dbCollection = this.mongoDBCreate.getCollection("fasta_info");
+		BasicDBObject searchQuery = new BasicDBObject();
+		searchQuery.put("file_name", fileName);
+		int numberOfLine = 0;
+		DBCursor cursor = this.dbCollection.find(searchQuery);
+		while (cursor.hasNext()) {
+		    BasicDBObject obj = (BasicDBObject) cursor.next();
+			numberOfLine = obj.getInt("num_lines");
+			break;
+		}
+		if (numberOfLine == 0){
+			System.out.println("*** Número de linhas igual a 0 :(");
+		}
+		return numberOfLine;
+	}
+	
+	/**
 	 * Retorna o conteudo de uma collection, ou seja,
 	 * de um arquivo fasta completo e manda para a lista de Fasta_Info
 	 * onde pode ser gerado o arquivo fasta
 	 * @param collection
 	 * @throws IOException
 	 */
-	public List<FastaContent> findByCollection(String collection) throws IOException{
-		this.dbCollection = this.mongoDBCreate.getCollection(collection);
-		DBCursor cursor = this.dbCollection.find();
-		List<FastaContent> listFastaContent = new ArrayList<FastaContent>();
-		while (cursor.hasNext()) {
-		    BasicDBObject obj = (BasicDBObject) cursor.next();
-			FastaContent fastaContent = new FastaContent(obj.getString("idSeq"), obj.getString("seqDna"), obj.getInt("line"));
-			listFastaContent.add(fastaContent);
+	public void findByCollection(String fileName) throws IOException{
+		OutputFasta outputFasta = new OutputFasta();
+		int numOfLines = this.getNumberOfLines(fileName);
+		this.dbCollection = this.mongoDBCreate.getCollection(fileName);
+		outputFasta.createFastaFile(fileName);
+		if (numOfLines <= 500000){
+			DBCursor cursorFind = this.dbCollection.find();
+			while (cursorFind.hasNext()) {
+				BasicDBObject obj = (BasicDBObject) cursorFind.next();
+				outputFasta.writeFastaFile(obj.getString("idSeq"), obj.getString("seqDna"));
+			}
+		}else{
+			int numOfRecords = 0;
+			int numParts = numOfLines/500000;
+			for (int i = 0; i < numParts; i++) {
+				
+				if (i == (numParts - 1)){
+					DBCursor cursorFind = this.dbCollection.find().skip(numOfRecords).limit(numOfLines);
+					while (cursorFind.hasNext()) {
+						BasicDBObject obj = (BasicDBObject) cursorFind.next();
+						outputFasta.writeFastaFile(obj.getString("idSeq"), obj.getString("seqDna"));
+					}
+
+				}else{
+					DBCursor cursorFind = this.dbCollection.find().skip(numOfRecords).limit(500000);
+					while (cursorFind.hasNext()) {
+						BasicDBObject obj = (BasicDBObject) cursorFind.next();
+						outputFasta.writeFastaFile(obj.getString("idSeq"), obj.getString("seqDna"));
+					}
+				}
+				numOfRecords += 500000;
+				System.out.println("* Registros escritos: "+numOfRecords+"/"+numOfLines);
+			}
 		}
-		if (listFastaContent.isEmpty()){
+		outputFasta.closeFastaFile();
+		if (numOfLines == 0){
 			System.out.println("*** Conteúdo do arquivo não encontrado no Banco de dados :(");
 		}
-		return listFastaContent;
+		System.out.println();
+		System.out.println("**** Quantidade de registros: "+numOfLines);
 	}
 	
 	/**
@@ -102,16 +170,6 @@ public class MongoDBDAO {
 		}
 		if (listFastaContent.isEmpty()){
 			System.out.println("*** ID de Sequência não encontrado no Banco de dados :(");
-		}
-	}
-	
-	
-	public void findAll() throws IOException{
-
-		DBCursor cursor = this.dbCollection.find();
-
-		while (cursor.hasNext()) {
-			System.out.println(cursor.next());
 		}
 	}
 	

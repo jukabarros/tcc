@@ -177,11 +177,10 @@ public class MySQLDAO{
 	 * @throws SQLException
 	 * @throws IOException 
 	 */
-	public List<FastaContent> findByFilename(String fileName) throws SQLException, IOException{
+	public void findByFilename(String fileName) throws SQLException, IOException{
 		// Recuperando o id do arquivo
 		int fileID = this.getIDFastaInfo(fileName);
 		OutputFasta outputFasta = new OutputFasta();
-		List<FastaContent> listFastaContent = new ArrayList<FastaContent>();
 		beforeExecuteQuery();
 		// recupera o numero total de linhas para ver se eh necessario fazer a extracao por partes
 		Integer numOfLine = this.getNumOfLinesFastaInfo(fileID);
@@ -216,18 +215,17 @@ public class MySQLDAO{
 				PreparedStatement queryExec = this.conn.prepareStatement(this.query);
 				queryExec.setInt(1, fileID);
 				ResultSet results = queryExec.executeQuery();
-				System.out.println("* Registros escritos: "+numOfRecords);
 				while (results.next()){
 					outputFasta.writeFastaFile(results.getString(1), results.getString(2));
 				}
-				System.out.println("OK");
+				System.out.println("* Registros escritos: "+numOfRecords+"/"+numOfLine);
 
 				queryExec = null;
 				results = null;
 				this.query = null;
 			}
 		}
-		if (listFastaContent.isEmpty()){
+		if (numOfLine.equals(0)){
 			System.out.println("*** Conteúdo do arquivo não encontrado no Banco de dados :(");
 		}
 		
@@ -236,7 +234,6 @@ public class MySQLDAO{
 		
 		System.out.println();
 		System.out.println("**** Quantidade de registros: "+numOfLine);
-		return listFastaContent;
 		
 	}
 	

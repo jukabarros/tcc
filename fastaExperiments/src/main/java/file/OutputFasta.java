@@ -75,8 +75,8 @@ public class OutputFasta {
 	
 	
 	/**
-	 * Cria o arquivo fasta quando a qntd de SRRs por linha eh igual a 1
-	 * essa qntd eh definida no arquivo properties: srr.quantity
+	 * Cria o arquivo fasta quando a qntd de SRSs por linha eh igual a 1
+	 * essa qntd eh definida no arquivo properties: srs.quantity
 	 * @param id
 	 * @param seqDNA
 	 */
@@ -93,11 +93,4 @@ public class OutputFasta {
 		this.fw.close();
 	}
 
-	public List<FastaContent> getAllFastaContent() {
-		return allFastaContent;
-	}
-
-	public void setAllFastaContent(List<FastaContent> allFastaContent) {
-		this.allFastaContent = allFastaContent;
-	}
 }

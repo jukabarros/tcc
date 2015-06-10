@@ -73,6 +73,9 @@ public class FastaReaderToMongoDB {
 					this.readFastaFile(file.getAbsolutePath());
 					long endTime = System.currentTimeMillis();
 					
+					// Atualizando o numero de linhas inseridas no banco
+					this.dao.updateNumOfLines(file.getName(), this.lineNumber/2);
+					
 					// Calculando o tempo de insercao de cada arquivo
 					String timeExecutionSTR = this.calcTimeExecution(startTime, endTime);
 					this.bwMongoDBInsertTime.write(file.getName() + '\t' + timeExecutionSTR + '\n');

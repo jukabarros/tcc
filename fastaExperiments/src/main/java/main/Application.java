@@ -100,7 +100,7 @@ public class Application {
 				MongoDBDAO dao = new MongoDBDAO();
 				if (extractData.equals("YES")){
 					System.out.println("\n**** Extraindo o conteudo de "+fileNameOutput);
-					listFastaContent = dao.findByCollection(fileNameOutput);
+					dao.findByCollection(fileNameOutput);
 				}else{
 					System.out.println("\n**** Consultando por id de sequencia: "+idSeqDNA);
 					dao.findByID(idSeqDNA);
@@ -116,7 +116,7 @@ public class Application {
 				MySQLDAO dao = new MySQLDAO();
 				if (extractData.equals("YES")){
 					System.out.println("\n**** Extraindo o conteudo de "+fileNameOutput);
-					listFastaContent = dao.findByFilename(fileNameOutput);
+					dao.findByFilename(fileNameOutput);
 				}else{
 					System.out.println("\n**** Consultando por id de sequencia: "+idSeqDNA);
 					dao.findByID(idSeqDNA);
@@ -131,6 +131,7 @@ public class Application {
 		app.calcTimeExecution(startTime, endTime);
 
 		/*
+		 * <<<< VERIFICAR A UTILIDADE DISSO >>>
 		 * CRIANDO O ARQUIVO DE SAIDA .fasta ou .fa 
  		 * somente no caso da extração
 		 */
