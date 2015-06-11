@@ -125,11 +125,11 @@ public class FastaReaderToMySQL {
 					
 					// Adicionando os nomes dos arquivos na lista para extracao em doAllExperiments
 					this.allFilesNames.add(file.getName());
-					
+					System.out.println("* Indexando o arquivo "+file.getName());
 					this.dao.insertFastaInfo(file.getName(), sizeInMb, "Inserir comentario");
 					// Recuperando id do arquivo para inserir na tabela fasta_collect
 					int idFastaInfo = this.dao.getIDFastaInfo(file.getName());
-					
+					System.out.println("* Inserindo o conteudo do arquivo no BD");
 					this.lineNumber = 0;
 					long startTime = System.currentTimeMillis();
 					this.readFastaFile(file.getAbsolutePath(), idFastaInfo);

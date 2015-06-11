@@ -127,7 +127,7 @@ public class FastaReaderToMongoDB {
 					System.out.println("*** Indexando o arquivo: "+file.getName());
 					long sizeInMb = file.length() / (1024 * 1024);
 					this.dao.insertFastaInfo(file.getName(), "Inserir comentario", sizeInMb);
-					System.out.println("OK\n");
+					System.out.println("* Inserindo o conteudo do arquivo no BD");
 					this.dao.getCollection(file.getName());
 					this.lineNumber = 0;
 					

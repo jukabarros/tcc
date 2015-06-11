@@ -124,29 +124,30 @@ public class CassandraDAO {
 	 * @return
 	 * @throws IOException 
 	 */
-	public void findByFileName(String fileName) throws IOException{
+	public void findByFileName(String fileName, int repeat) throws IOException{
 		this.beforeExecuteQuery();
 		this.query = "SELECT * FROM fasta_info WHERE file_name = ?;";
 		PreparedStatement statement = this.session.prepare(query);
 		BoundStatement boundStatement = new BoundStatement(statement);
 		ResultSet results = this.session.execute(boundStatement.bind(fileName));
-		if (results.all().isEmpty()){
-			System.out.println("** Arquivo não existe no banco de dados :(");
-		}else{
-			for (Row row : results) {
-				String tableName = fileName.replace(".", "___");
-				int numOfLines = row.getInt("num_lines");
-				this.extractFastaContent(tableName, numOfLines);
+	
+		for (Row row : results) {
+			if (row.isNull(0)){
+				System.out.println("** Conteudo nao encontrado no banco de dados");
+				break;
 			}
+			String tableName = fileName.replace(".", "___");
+			int numOfLines = row.getInt("num_lines");
+			this.extractFastaContent(tableName, numOfLines, repeat);
 		}
 		this.afterExecuteQuery();
 	}
 	
-	public void extractFastaContent(String table, int numOfLines) throws IOException{
+	public void extractFastaContent(String table, int numOfLines, int repeat) throws IOException{
 		OutputFasta outputFasta = new OutputFasta();
 		String fileName = table.replace("___", ".");
 		System.out.println("** Criando o arquivo "+fileName);
-		outputFasta.createFastaFile(fileName);
+		outputFasta.createFastaFile(repeat+fileName);
 		if (numOfLines == 0){
 			System.out.println("*** Esse arquivo está vazio :(");
 		}else {

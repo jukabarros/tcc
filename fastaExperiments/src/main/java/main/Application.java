@@ -31,10 +31,6 @@ public class Application {
 	 * Argumentos Opcionais:
 	 * 0 - Arquivo ou Diretorio do fasta
 	 * 1 - Tamanho da SRS
-	 * 
-	 * Automatizar todo experimento na seguinte ordem:
-	 * Inserir todos os fastas, Consultar por 5 IDs de Sequencias ja definidos e Extrair todos os arquivos
-	 * Para cada situação Gerar um arquivo TXTs
 	 */
 	public static void main(String[] args) throws IOException, SQLException {
 		Application app = new Application();
@@ -77,18 +73,23 @@ public class Application {
 		 * INSERINDO / EXTRAINDO DO BD
 		 */
 		if(db.equals("CASSANDRA")){
-			if(insertData.equals("YES") ||  allExperiment.equals("YES")){
+			if (allExperiment.equals("YES")){
 				for (int i = 1; i <= numOfRepeat; i++) {
-					CassandraCreate.main(null);
+//					CassandraCreate.main(null);
 					FastaReaderToCassandra frToCassandra = new FastaReaderToCassandra();
-					frToCassandra.readFastaDirectory(fastaDirectory, i, srsSize);
+					frToCassandra.doAllExperiment(fastaDirectory, i, srsSize);
 				}
+				
+			}else if(insertData.equals("YES")){
+				CassandraCreate.main(null);
+				FastaReaderToCassandra frToCassandra = new FastaReaderToCassandra();
+				frToCassandra.readFastaDirectory(fastaDirectory, 0, srsSize);
 				
 			}else{
 				CassandraDAO dao = new CassandraDAO();
 				if (extractData.equals("YES")){
 					System.out.println("\n**** Extraindo o conteudo de "+fileNameOutput);
-					dao.findByFileName(fileNameOutput);
+					dao.findByFileName("cabra6_qv15_solid_unribo.fa", 0);
 				}else{
 					System.out.println("\n**** Consultando por id de sequencia: "+idSeqDNA);
 					dao.findByID(idSeqDNA);
