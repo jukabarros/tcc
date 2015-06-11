@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
@@ -112,7 +113,8 @@ public class FastaReaderToCassandra {
 		File directory = new File(fastaFilePath);
 		//get all the files from a directory
 		File[] fList = directory.listFiles();
-		
+		// Ordernando a lista por ordem alfabetica
+		Arrays.sort(fList);
 		// Criando o arquivo txt referente ao tempo de insercao no bd
 		this.createInsertTimeTxt(repeat, srsSize);
 		this.bwCassandra.write("****** INSERÇÃO ******\n");
