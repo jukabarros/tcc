@@ -1,8 +1,6 @@
 package dao;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Properties;
 
 import com.datastax.driver.core.BoundStatement;
@@ -14,7 +12,7 @@ import com.datastax.driver.core.Session;
 import config.ConnectCassandra;
 import config.ReadProperties;
 import create.CassandraCreate;
-import dna.FastaContent;
+import file.OutputFasta;
 
 public class CassandraDAO {
 	
@@ -52,26 +50,6 @@ public class CassandraDAO {
 		}
 	}
 	
-	public void findAll(){
-		this.beforeExecuteQuery();
-		this.query = "SELECT * FROM fastaCollect;";
-		ResultSet results = session.execute(this.query);
-		int line = 0;
-//		System.out.println(String.format("%-30s\t%-70s", "id", "seqDNA",
-//				"----------------+------------------------------------"));
-		List<FastaContent> listFastaInfo = new ArrayList<FastaContent>();
-		for (Row row : results) {
-//			System.out.println(String.format("%-30s\t%-70s", row.getString("id"), row.getString("seq_dna")));
-			FastaContent fastaInfo = new FastaContent(row.getString("id"), row.getString("seq_dna"), row.getInt(3));
-			listFastaInfo.add(fastaInfo);
-			fastaInfo = null;
-			line++;
-		}
-		this.afterExecuteQuery();
-		System.out.println();
-		System.out.println("******* Quantidade de linhas: "+line);
-	}
-	
 	/**
 	 * Insere o conteudo do arquivo fasta na tabela referente ao arquivo
 	 * essa tabela possui o mesmo nome do arquivo
@@ -104,12 +82,33 @@ public class CassandraDAO {
 	public void insertFastaInfo(String fileName, double size, String comment){
 		try{
 			this.beforeExecuteQuery();
-			this.query = "INSERT INTO fasta_info (file_name, size, comment) VALUES (?, ?, ?);";
+			this.query = "INSERT INTO fasta_info (file_name, size, comment, num_lines) VALUES (?, ?, ?, 0);";
 			PreparedStatement statement = this.session.prepare(query);
 			BoundStatement boundStatement = new BoundStatement(statement);
 			this.session.execute(boundStatement.bind(fileName, size, comment));
 			this.afterExecuteQuery();
 			this.cassandraCreate.createTable(fileName);
+		}catch (Exception e){
+			System.out.println("Erro ao executar a query: :("+e.getMessage());
+		}
+	}
+	
+	/**
+	 * Insere as informacoes do arquivo fasta na tabela fasta_info, que vai servir
+	 * como index para os arquivos que serão inseridos
+	 * 
+	 * @param fileName
+	 * @param size
+	 * @param comment
+	 */
+	public void updateNumOfLinesFastaInfo(String fileName, int numOfLines){
+		try{
+			this.beforeExecuteQuery();
+			this.query = "UPDATE fasta_info SET num_lines = ? WHERE file_name = ?;";
+			PreparedStatement statement = this.session.prepare(query);
+			BoundStatement boundStatement = new BoundStatement(statement);
+			this.session.execute(boundStatement.bind(numOfLines, fileName));
+			this.afterExecuteQuery();
 		}catch (Exception e){
 			System.out.println("Erro ao executar a query: :("+e.getMessage());
 		}
@@ -123,40 +122,48 @@ public class CassandraDAO {
 	 * está "___fa".
 	 * @param fileName
 	 * @return
+	 * @throws IOException 
 	 */
-	public List<FastaContent> findByFileName(String fileName){
+	public void findByFileName(String fileName) throws IOException{
 		this.beforeExecuteQuery();
 		this.query = "SELECT * FROM fasta_info WHERE file_name = ?;";
 		PreparedStatement statement = this.session.prepare(query);
 		BoundStatement boundStatement = new BoundStatement(statement);
 		ResultSet results = this.session.execute(boundStatement.bind(fileName));
-		List<FastaContent> listFastaContent = new ArrayList<FastaContent>();
-		if (!results.all().isEmpty()){
-			String tableName = fileName.replace(".", "___");
-			listFastaContent = this.extractFastaContent(tableName);
+		if (results.all().isEmpty()){
+			System.out.println("** Arquivo não existe no banco de dados :(");
 		}else{
-			System.out.println("*** Conteúdo do arquivo não encontrado no Banco de dados :(");
+			for (Row row : results) {
+				String tableName = fileName.replace(".", "___");
+				int numOfLines = row.getInt("num_lines");
+				this.extractFastaContent(tableName, numOfLines);
+			}
 		}
 		this.afterExecuteQuery();
-		return listFastaContent;
 	}
 	
-	public List<FastaContent> extractFastaContent(String table){
-		this.query = "SELECT * FROM "+table;
-		ResultSet results = this.session.execute(query);
-		int line = 0;
-		List<FastaContent> listFastaContent = new ArrayList<FastaContent>();
-		for (Row row : results) {
-			FastaContent fastaContent = new FastaContent(row.getString("id_seq"), row.getString("seq_dna"), row.getInt("line"));
-			listFastaContent.add(fastaContent);
-			fastaContent = null;
-			line++;
+	public void extractFastaContent(String table, int numOfLines) throws IOException{
+		OutputFasta outputFasta = new OutputFasta();
+		String fileName = table.replace("___", ".");
+		System.out.println("** Criando o arquivo "+fileName);
+		outputFasta.createFastaFile(fileName);
+		if (numOfLines == 0){
+			System.out.println("*** Esse arquivo está vazio :(");
+		}else {
+
+			this.query = "SELECT * FROM "+table;
+			ResultSet results = this.session.execute(this.query);
+			int line = 0;
+			for (Row row : results) {
+				outputFasta.writeFastaFile(row.getString("id_seq"), row.getString("seq_dna"));
+				if (line%1000000 == 0){
+					System.out.println("* Registros escritos: "+line+"/"+numOfLines);
+				}
+				line++;
+			}
 		}
-		if (listFastaContent.isEmpty()){
-			System.out.println("*** Esse arquivo está vazio");
-		}
-		System.out.println("**** Quantidade de linhas: "+line);
-		return listFastaContent;
+		System.out.println("**** Quantidade de linhas: "+numOfLines);
+		outputFasta.closeFastaFile();
 	}
 	
 	/**

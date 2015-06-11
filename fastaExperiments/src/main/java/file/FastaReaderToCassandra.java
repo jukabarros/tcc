@@ -71,7 +71,7 @@ public class FastaReaderToCassandra {
 					long startTime = System.currentTimeMillis();
 					this.readFastaFile(file.getAbsolutePath(), file.getName());
 					long endTime = System.currentTimeMillis();
-					
+					this.dao.updateNumOfLinesFastaInfo(file.getName(), lineNumber/2);
 					// Calculando o tempo de insercao de cada arquivo
 					String timeExecutionSTR = this.calcTimeExecution(startTime, endTime);
 					this.bwCassandraInsertTime.write(file.getName() + '\t' + timeExecutionSTR + '\n');

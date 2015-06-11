@@ -4,8 +4,6 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Properties;
 
 import config.ReadProperties;
@@ -15,11 +13,9 @@ import create.MySQLCreate;
 import dao.CassandraDAO;
 import dao.MongoDBDAO;
 import dao.MySQLDAO;
-import dna.FastaContent;
 import file.FastaReaderToCassandra;
 import file.FastaReaderToMongoDB;
 import file.FastaReaderToMySQL;
-import file.OutputFasta;
 
 public class Application {
 	
@@ -32,7 +28,7 @@ public class Application {
 		return totalTime;
 	}
 	/*
-	 * Possiveis Argumentos:
+	 * Argumentos Opcionais:
 	 * 0 - Arquivo ou Diretorio do fasta
 	 * 1 - Arquivo de Saida
 	 */
@@ -68,7 +64,6 @@ public class Application {
 		String idSeqDNA = prop.getProperty("id.seqDNA");
 		String extractData = prop.getProperty("extract.data").toUpperCase();
 		System.out.println("* Extract To File: "+extractData);
-		List<FastaContent> listFastaContent = new ArrayList<FastaContent>();
 		long startTime = System.currentTimeMillis();
 		/*
 		 * INSERINDO / EXTRAINDO DO BD
@@ -84,7 +79,7 @@ public class Application {
 				CassandraDAO dao = new CassandraDAO();
 				if (extractData.equals("YES")){
 					System.out.println("\n**** Extraindo o conteudo de "+fileNameOutput);
-					listFastaContent = dao.findByFileName(fileNameOutput);
+					dao.findByFileName(fileNameOutput);
 				}else{
 					System.out.println("\n**** Consultando por id de sequencia: "+idSeqDNA);
 					dao.findByID(idSeqDNA);
@@ -129,29 +124,7 @@ public class Application {
 
 		long endTime = System.currentTimeMillis();
 		app.calcTimeExecution(startTime, endTime);
-
-		/*
-		 * <<<< VERIFICAR A UTILIDADE DISSO >>>
-		 * CRIANDO O ARQUIVO DE SAIDA .fasta ou .fa 
- 		 * somente no caso da extração
-		 */
-		String createOutputFile = prop.getProperty("create.output.file").toUpperCase();
-		if (createOutputFile.equals("YES") && extractData.equals("YES")){
-			if (listFastaContent.isEmpty()){
-				System.out.println("*** Não foi possível gerar o arquivo fasta.\n"
-						+ "Para Gerar o arquivo fasta é necessário realizar a extração do Banco de Dados.\n"
-						+ "OBS.: Caso a inserção já foi feita coloque o valor 'no' na propriedade 'insert.data'.");
-			}else{
-
-				System.out.println("*** Criando o arquivo: "+fileNameOutput);
-				OutputFasta outputFasta = new OutputFasta();
-				outputFasta.createFastaFile(fileNameOutput);
-				outputFasta.prepareFastaFile(listFastaContent);
-				outputFasta.closeFastaFile();
-				System.out.println("*** Fim ***");
-			}
-
-		}
+		
 	}
 
 }
