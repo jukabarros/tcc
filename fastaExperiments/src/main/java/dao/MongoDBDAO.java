@@ -101,12 +101,12 @@ public class MongoDBDAO {
 	 * @param collection
 	 * @throws IOException
 	 */
-	public void findByCollection(String fileName) throws IOException{
+	public void findByCollection(String fileName, int repeat) throws IOException{
 		OutputFasta outputFasta = new OutputFasta();
 		int numOfLines = this.getNumberOfLines(fileName);
 		this.dbCollection = this.mongoDBCreate.getCollection(fileName);
-		outputFasta.createFastaFile(fileName);
-		if (numOfLines <= 500000){
+		outputFasta.createFastaFile(repeat+fileName);
+		if (numOfLines != 0){ // Para paginacao colocar "<= 500 000"
 			DBCursor cursorFind = this.dbCollection.find();
 			while (cursorFind.hasNext()) {
 				BasicDBObject obj = (BasicDBObject) cursorFind.next();

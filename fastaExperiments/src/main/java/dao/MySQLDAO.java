@@ -20,13 +20,9 @@ public class MySQLDAO{
 	
 	private Connection conn;
 	
-	private List<FastaContent> listFastaContents;
-	
-	
 	public MySQLDAO() throws IOException {
 		this.query = null;
 		this.conn = null;
-		this.listFastaContents = new ArrayList<FastaContent>();
 	}
 	
 	/*
@@ -48,12 +44,6 @@ public class MySQLDAO{
 		this.conn.close();
 	}
 	
-	public void executeQuery(String query) throws SQLException{
-		PreparedStatement queryExec = this.conn.prepareStatement(query);
-		queryExec.execute();
-		queryExec.close();
-		queryExec = null;
-	}
 
 	public void insertFastaInfo(String fileName, long size, String comment) throws SQLException{
 		try{
@@ -177,7 +167,7 @@ public class MySQLDAO{
 	 * @throws SQLException
 	 * @throws IOException 
 	 */
-	public void findByFilename(String fileName) throws SQLException, IOException{
+	public void findByFilename(String fileName, int repeat) throws SQLException, IOException{
 		// Recuperando o id do arquivo
 		int fileID = this.getIDFastaInfo(fileName);
 		OutputFasta outputFasta = new OutputFasta();
@@ -185,17 +175,13 @@ public class MySQLDAO{
 		// recupera o numero total de linhas para ver se eh necessario fazer a extracao por partes
 		Integer numOfLine = this.getNumOfLinesFastaInfo(fileID);
 		System.out.println("*** Criando o arquivo: "+fileName);
-		outputFasta.createFastaFile(fileName);
+		outputFasta.createFastaFile(repeat+fileName);
 		if (numOfLine <= 500000){
 			this.query = "SELECT TRIM(id_seq), TRIM(seq_dna) FROM fasta_collect WHERE fasta_info = ?;";
 			PreparedStatement queryExec = this.conn.prepareStatement(this.query);
 			queryExec.setInt(1, fileID);
 			ResultSet results = queryExec.executeQuery();
 			while (results.next()){
-				// Escrever o arquivo diretamente e ordernado??
-//				FastaContent fastaInfo = new FastaContent(results.getString(1), results.getString(2), results.getInt(3));
-//				listFastaContent.add(fastaInfo);
-//				fastaInfo = null;
 				outputFasta.writeFastaFile(results.getString(1), results.getString(2));
 			}
 		}else{
@@ -203,7 +189,6 @@ public class MySQLDAO{
 			int numParts = numOfLine/500000;
 			for (int i = 0; i < numParts; i++) {
 				if (i == (numParts - 1)){
-					// Ultima parte da divisao
 					this.query = "SELECT TRIM(id_seq), TRIM(seq_dna) FROM "
 							+ "fasta_collect WHERE fasta_info = ? LIMIT "+numOfRecords+", "+numOfLine+";";
 					
@@ -247,6 +232,9 @@ public class MySQLDAO{
 		List<FastaContent> listFastaContent = new ArrayList<FastaContent>();
 		while (results.next()){
 			// id fasta_info
+			/*
+			 * Gerar arquivo de com Tempo de cada consulta
+			 */
 			String fileName = this.getFileNameFastaInfo(results.getInt(5));
 			System.out.println("ID de Sequência encontrado no arquivo "+fileName);
 			System.out.println("ID: "+results.getString(2));
@@ -262,8 +250,6 @@ public class MySQLDAO{
 		
 		
 	}
-
-	
 	
 	public Connection getConn() {
 		return conn;
@@ -271,14 +257,6 @@ public class MySQLDAO{
 
 	public void setConn(Connection conn) {
 		this.conn = conn;
-	}
-
-	public List<FastaContent> getListFastaContents() {
-		return listFastaContents;
-	}
-
-	public void setListFastaContents(List<FastaContent> listFastaContents) {
-		this.listFastaContents = listFastaContents;
 	}
 
 }

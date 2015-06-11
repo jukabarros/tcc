@@ -30,50 +30,59 @@ public class Application {
 	/*
 	 * Argumentos Opcionais:
 	 * 0 - Arquivo ou Diretorio do fasta
-	 * 1 - Arquivo de Saida
+	 * 1 - Tamanho da SRS
+	 * 
+	 * Automatizar todo experimento na seguinte ordem:
+	 * Inserir todos os fastas, Consultar por 5 IDs de Sequencias ja definidos e Extrair todos os arquivos
+	 * Para cada situação Gerar um arquivo TXTs
 	 */
 	public static void main(String[] args) throws IOException, SQLException {
 		Application app = new Application();
 		String fastaDirectory = null;
 		String fileNameOutput = null;
-
+		int srsSize = 0;
 		Properties prop = ReadProperties.getProp();
-
+		int numOfRepeat = Integer.parseInt(prop.getProperty("num.repeat"));
 		int numOfArgs = args.length;
 		switch (numOfArgs) {
 		case 0:
 			System.out.println("** Capturando os parametros no arquivo properties");
 			fastaDirectory = prop.getProperty("fasta.directory");
-			fileNameOutput = prop.getProperty("file.name.output");
+			srsSize = Integer.parseInt(prop.getProperty("srs.quantity"));
 			break;
 		case 1:
 			fastaDirectory = args[0];
-			fileNameOutput = prop.getProperty("file.name.output");
+			srsSize = Integer.parseInt(prop.getProperty("srs.quantity"));
 			break;
 		default:
 			fastaDirectory = args[0];
-			fileNameOutput = args[1];
+			srsSize = Integer.parseInt(args[1]);
 			break;
 		}
-		int srsSize = Integer.parseInt(prop.getProperty("srs.quantity"));
+		String allExperiment = prop.getProperty("all.experiments").toUpperCase();
+		System.out.println("* Executar todos experimentos: "+allExperiment);
+		System.out.println("* Numero de Repeticões: "+numOfRepeat);
+		
 		System.out.println("* Tamanho da SRS: "+srsSize);
 		String db = prop.getProperty("database").toUpperCase();
 		System.out.println("* Banco de Dados: "+db);
+		
 		String insertData = prop.getProperty("insert.data").toUpperCase();
-		System.out.println("* Insert Data: "+insertData);
+		
 		String idSeqDNA = prop.getProperty("id.seqDNA");
 		String extractData = prop.getProperty("extract.data").toUpperCase();
-		System.out.println("* Extract To File: "+extractData);
+		
 		long startTime = System.currentTimeMillis();
 		/*
 		 * INSERINDO / EXTRAINDO DO BD
 		 */
 		if(db.equals("CASSANDRA")){
-			if(insertData.equals("YES")){
-				
-				CassandraCreate.main(null);
-				FastaReaderToCassandra frToCassandra = new FastaReaderToCassandra();
-				frToCassandra.readFastaDirectory(fastaDirectory);
+			if(insertData.equals("YES") ||  allExperiment.equals("YES")){
+				for (int i = 1; i <= numOfRepeat; i++) {
+					CassandraCreate.main(null);
+					FastaReaderToCassandra frToCassandra = new FastaReaderToCassandra();
+					frToCassandra.readFastaDirectory(fastaDirectory, i, srsSize);
+				}
 				
 			}else{
 				CassandraDAO dao = new CassandraDAO();
@@ -87,15 +96,25 @@ public class Application {
 			}
 
 		}else if (db.equals("MONGODB")){
-			if(insertData.equals("YES")){
+			if (allExperiment.equals("YES")){
+				for (int i = 1; i <= numOfRepeat; i++) {
+					System.out.println("***************** Repetição: "+i);
+					MongoDBCreate.main(null);
+					FastaReaderToMongoDB frToMongo = new FastaReaderToMongoDB();
+					frToMongo.doAllExperiment(fastaDirectory, i, srsSize);
+				}
+				
+			}
+			else if(insertData.equals("YES")){
 				MongoDBCreate.main(null);
 				FastaReaderToMongoDB frToMongo = new FastaReaderToMongoDB();
-				frToMongo.readFastaDirectory(fastaDirectory);
+				frToMongo.readFastaDirectory(fastaDirectory, 0, srsSize);
+
 			}else{
 				MongoDBDAO dao = new MongoDBDAO();
 				if (extractData.equals("YES")){
 					System.out.println("\n**** Extraindo o conteudo de "+fileNameOutput);
-					dao.findByCollection(fileNameOutput);
+					dao.findByCollection(fileNameOutput, 0);
 				}else{
 					System.out.println("\n**** Consultando por id de sequencia: "+idSeqDNA);
 					dao.findByID(idSeqDNA);
@@ -103,15 +122,25 @@ public class Application {
 			}
 
 		}else if (db.equals("MYSQL")){
-			if(insertData.equals("YES")){
+			if (allExperiment.equals("YES")){
+				for (int i = 1; i <= numOfRepeat; i++) {
+					System.out.println("***************** Repetição: "+i);
+					MySQLCreate.main(null);
+					FastaReaderToMySQL frToMySQL = new FastaReaderToMySQL();
+					frToMySQL.doAllExperiment(fastaDirectory, i, srsSize);
+				}
+				
+			}
+			else if(insertData.equals("YES")){
 				MySQLCreate.main(null);
 				FastaReaderToMySQL frToMySQL = new FastaReaderToMySQL();
-				frToMySQL.readFastaDirectory(fastaDirectory);
+				frToMySQL.readFastaDirectory(fastaDirectory, 1, srsSize);
+
 			}else{
 				MySQLDAO dao = new MySQLDAO();
 				if (extractData.equals("YES")){
 					System.out.println("\n**** Extraindo o conteudo de "+fileNameOutput);
-					dao.findByFilename(fileNameOutput);
+					dao.findByFilename(fileNameOutput, 0);
 				}else{
 					System.out.println("\n**** Consultando por id de sequencia: "+idSeqDNA);
 					dao.findByID(idSeqDNA);

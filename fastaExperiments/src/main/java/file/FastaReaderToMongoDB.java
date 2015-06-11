@@ -7,8 +7,11 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 import config.ReadProperties;
@@ -26,11 +29,13 @@ public class FastaReaderToMongoDB {
 	/* Sao usadas para criar o arquivo txt indicando
 	 * o tempo de insercao de cada arquivo
 	 */
-	private File fileInsertTimeMongoDB;
+	private File fileTxtMongoDB;
 	
-	private FileWriter fwMongoDBInsertTime;
+	private FileWriter fwMongoDB;
 	
-	private BufferedWriter bwMongoDBInsertTime;
+	private BufferedWriter bwMongoDB;
+	
+	private List<String> allFilesNames;
 	
 	public FastaReaderToMongoDB() throws IOException {
 		super();
@@ -38,9 +43,64 @@ public class FastaReaderToMongoDB {
 		this.lineNumber = 0;
 		this.dao = new MongoDBDAO();
 		
-		this.fileInsertTimeMongoDB = null;
-		this.fwMongoDBInsertTime = null;
-		this.bwMongoDBInsertTime = null;
+		this.fileTxtMongoDB = null;
+		this.fwMongoDB = null;
+		this.bwMongoDB = null;
+		this.allFilesNames = new ArrayList<String>();
+	}
+	
+	
+	/**
+	 * Realiza todos os experimento de uma so vez, na seguinte ordem:
+	 * Insere todos os arquivos fastas, consulta por 5 ids diferentes e extrai todos os arquivos
+	 * Esse procedimento pode ser repetido de acordo com a propriedade 'num.repeat'
+	 * @param fastaFilePath
+	 * @param repeat
+	 * @param srsSize
+	 * @throws SQLException
+	 * @throws IOException
+	 */
+	public void doAllExperiment(String fastaFilePath, int repeat, int srsSize) throws SQLException, IOException{
+		System.out.println("\n\n** Iniciando a Inserção dos arquivos");
+		this.readFastaDirectory(fastaFilePath, repeat, srsSize);
+		
+		List<String> idSequences = new ArrayList<String>();
+		idSequences.add(">1303_40_1460_F3"); //cabra4
+		idSequences.add(">1303_42_1190_F3"); // cabra6
+		idSequences.add(">1303_37_58_F3"); // cabra5
+		idSequences.add(">1303_43_50_F3"); // cabra6
+		idSequences.add(">1303_38_874_F3"); // cabra7
+		System.out.println("\n\n** Iniciando as Consultas dos arquivos");
+		this.createConsultTimeTxt(repeat, srsSize);
+		this.bwMongoDB.write("****** CONSULTA ******\n");
+		for (int i = 0; i < idSequences.size(); i++) {
+			long startTime = System.currentTimeMillis();
+			this.dao.findByID(idSequences.get(i));
+			long endTime = System.currentTimeMillis();
+
+			String timeExecutionSTR = this.calcTimeExecution(startTime, endTime);
+			this.bwMongoDB.write(idSequences.get(i) + '\t' + "tempo: "+'\t'+timeExecutionSTR+'\n');
+		}
+		this.bwMongoDB.close();
+		this.fwMongoDB = null;
+		this.fileTxtMongoDB = null;
+		
+		System.out.println("\n\n** Iniciando a Extração dos arquivos");
+		this.createExtractTimeTxt(repeat,srsSize);
+		this.bwMongoDB.write("****** EXTRAÇÃO ******\n");
+		for (int i = 0; i < this.allFilesNames.size(); i++) {
+			long startTime = System.currentTimeMillis();
+			this.dao.findByCollection(this.allFilesNames.get(i), repeat);
+			long endTime = System.currentTimeMillis();
+
+			String timeExecutionSTR = this.calcTimeExecution(startTime, endTime);
+			this.bwMongoDB.write(this.allFilesNames.get(i) + '\t' + "tempo: "+'\t'+timeExecutionSTR+'\n');
+		}
+		this.bwMongoDB.close();
+		this.fwMongoDB = null;
+		this.fileTxtMongoDB = null;
+		
+		System.out.println("\n\n\n********** FIM ************");
 	}
 	
 	/**
@@ -50,18 +110,20 @@ public class FastaReaderToMongoDB {
 	 * @param fastaDirectory
 	 * @throws IOException 
 	 */
-	public void readFastaDirectory(String fastaDirectory) throws IOException{
+	public void readFastaDirectory(String fastaDirectory, int numOfRepeat, int srsSize) throws IOException{
 		File directory = new File(fastaDirectory);
 		//get all the files from a directory
 		File[] fList = directory.listFiles();
 		
 		// Criando o arquivo txt referente ao tempo de insercao no bd
-		this.createInsertTimeTxt();
-		
+		this.createInsertTimeTxt(numOfRepeat, srsSize);
+		this.bwMongoDB.write("****** INSERÇÃO ******\n");
 		for (File file : fList){
 			if (file.isFile()){
 				System.out.println("Lendo o arquivo: "+file.getName());
 				if (file.getName().endsWith(".fasta") || file.getName().endsWith(".fa")){
+					// Adicionando os arquivos para fazer a extracao em doAllExperiments
+					this.allFilesNames.add(file.getName());
 					System.out.println("*** Indexando o arquivo: "+file.getName());
 					long sizeInMb = file.length() / (1024 * 1024);
 					this.dao.insertFastaInfo(file.getName(), "Inserir comentario", sizeInMb);
@@ -78,7 +140,7 @@ public class FastaReaderToMongoDB {
 					
 					// Calculando o tempo de insercao de cada arquivo
 					String timeExecutionSTR = this.calcTimeExecution(startTime, endTime);
-					this.bwMongoDBInsertTime.write(file.getName() + '\t' + timeExecutionSTR + '\n');
+					this.bwMongoDB.write(file.getName() + '\t' + "tempo: "+'\t'+timeExecutionSTR+'\n');
 					
 					System.out.println("** Fim da leitura do arquivo: "+file.getName());
 				}else {
@@ -86,9 +148,9 @@ public class FastaReaderToMongoDB {
 				}
 			}
 		}
-		this.bwMongoDBInsertTime.close();
-		this.fwMongoDBInsertTime = null;
-		this.fileInsertTimeMongoDB = null;
+		this.bwMongoDB.close();
+		this.fwMongoDB = null;
+		this.fileTxtMongoDB = null;
 		
 		System.out.println("**** Fim da Inserção no MongoDB.");
 		System.out.println("**** Total de linhas inseridas no Banco: "+this.allLines/2);
@@ -166,14 +228,54 @@ public class FastaReaderToMongoDB {
 	 * @param timeExecution
 	 * @throws IOException 
 	 */
-	private void createInsertTimeTxt() throws IOException{
-		this.fileInsertTimeMongoDB = new File("mongoDBInsertTime.txt");
-		this.fwMongoDBInsertTime = new FileWriter(this.fileInsertTimeMongoDB.getAbsoluteFile());
-		this.bwMongoDBInsertTime = new BufferedWriter(this.fwMongoDBInsertTime);
+	private void createInsertTimeTxt(int numOfRepeat, int srsSize) throws IOException{
+		this.fileTxtMongoDB = new File("test_"+numOfRepeat+"-mongoDBInsertTime_SRS_"+srsSize+".txt");
+		this.fwMongoDB = new FileWriter(this.fileTxtMongoDB.getAbsoluteFile());
+		this.bwMongoDB = new BufferedWriter(this.fwMongoDB);
 		
 		// if file doesnt exists, then create it
-		if (!this.fileInsertTimeMongoDB.exists()) {
-			this.fileInsertTimeMongoDB.createNewFile();
+		if (!this.fileTxtMongoDB.exists()) {
+			this.fileTxtMongoDB.createNewFile();
+		}
+		
+	}
+	
+	/**
+	 * Cria um arquivo txt que informa o tempo de extracao de cada 
+	 * arquivo Fasta
+	 * 
+	 * @param fastaFile
+	 * @param timeExecution
+	 * @throws IOException 
+	 */
+	private void createExtractTimeTxt(int numOfRepeat, int srsSize) throws IOException{
+		this.fileTxtMongoDB = new File("test_"+numOfRepeat+"_mongoDBExtractTime_SRS_"+srsSize+".txt");
+		this.fwMongoDB = new FileWriter(this.fileTxtMongoDB.getAbsoluteFile());
+		this.bwMongoDB = new BufferedWriter(this.fwMongoDB);
+		
+		// if file doesnt exists, then create it
+		if (!this.fileTxtMongoDB.exists()) {
+			this.fileTxtMongoDB.createNewFile();
+		}
+		
+	}
+	
+	/**
+	 * Cria um arquivo txt que informa o tempo de consulta de cada 
+	 * id de sequencia
+	 * 
+	 * @param fastaFile
+	 * @param timeExecution
+	 * @throws IOException 
+	 */
+	private void createConsultTimeTxt(int numOfRepeat, int srsSize) throws IOException{
+		this.fileTxtMongoDB = new File("test_"+numOfRepeat+"_mongoDBConsultTime_SRS_"+srsSize+".txt");
+		this.fwMongoDB = new FileWriter(this.fileTxtMongoDB.getAbsoluteFile());
+		this.bwMongoDB = new BufferedWriter(this.fwMongoDB);
+		
+		// if file doesnt exists, then create it
+		if (!this.fileTxtMongoDB.exists()) {
+			this.fileTxtMongoDB.createNewFile();
 		}
 		
 	}

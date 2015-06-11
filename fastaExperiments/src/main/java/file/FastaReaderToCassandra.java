@@ -51,13 +51,13 @@ public class FastaReaderToCassandra {
 	 * @throws SQLException 
 	 * @throws IOException 
 	 */
-	public void readFastaDirectory(String fastaFilePath) throws SQLException, IOException{
+	public void readFastaDirectory(String fastaFilePath, int repeat, int srsSize) throws SQLException, IOException{
 		File directory = new File(fastaFilePath);
 		//get all the files from a directory
 		File[] fList = directory.listFiles();
 		
 		// Criando o arquivo txt referente ao tempo de insercao no bd
-		this.createInsertTimeTxt();
+		this.createInsertTimeTxt(repeat, srsSize);
 		
 		for (File file : fList){
 			if (file.isFile()){
@@ -164,8 +164,8 @@ public class FastaReaderToCassandra {
 	 * @param timeExecution
 	 * @throws IOException 
 	 */
-	private void createInsertTimeTxt() throws IOException{
-		this.fileInsertTimeCassandra = new File("cassandraInsertTime.txt");
+	private void createInsertTimeTxt(int numOfRepeat, int srsSize) throws IOException{
+		this.fileInsertTimeCassandra = new File("test_"+numOfRepeat+"_cassandraInsertTime_"+srsSize+".txt");
 		this.fwCassandraInsertTime = new FileWriter(this.fileInsertTimeCassandra.getAbsoluteFile());
 		this.bwCassandraInsertTime = new BufferedWriter(this.fwCassandraInsertTime);
 		
