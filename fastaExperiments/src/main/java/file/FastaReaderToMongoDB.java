@@ -142,7 +142,6 @@ public class FastaReaderToMongoDB {
 					String timeExecutionSTR = this.calcTimeExecution(startTime, endTime);
 					this.bwMongoDB.write(file.getName() + '\t' + "tempo: "+'\t'+timeExecutionSTR+'\n');
 					
-					System.out.println("** Fim da leitura do arquivo: "+file.getName());
 				}else {
 					System.out.println("*** Atenção: "+file.getName()+ " não é um arquivo .fasta");
 				}
@@ -171,8 +170,6 @@ public class FastaReaderToMongoDB {
 			br = new BufferedReader(new FileReader(fastaFile));
 			String idSeq = "";
 			String seqDNA = "";
-			System.out.println("**** Inserindo o arquivo fasta no MongoDB");
-			
 			while ((line = br.readLine()) != null) {
 				numOfLine++;
 				this.allLines++;
@@ -188,8 +185,8 @@ public class FastaReaderToMongoDB {
 					idSeq = "";
 					seqDNA = "";
 				}
-				// Printando a cada 100 000 registro inseridos
-				if (this.lineNumber%200000 == 0){
+				// Printando a cada 500 000 registro inseridos
+				if (this.lineNumber%1000000 == 0){
 					System.out.println("Quantidade de registros inseridos: "+this.lineNumber/2);
 				}
 			}

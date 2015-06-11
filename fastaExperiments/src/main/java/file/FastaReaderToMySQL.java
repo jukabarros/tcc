@@ -189,7 +189,7 @@ public class FastaReaderToMySQL {
 					this.dao.insertFastaCollect(idSeq, seqDNA, this.lineNumber/2, idFastaInfo);
 					idSeq = "";
 					seqDNA = "";
-					// Printando a cada 1 000 000 registro inseridos
+					// Printando a cada 500 000 registro inseridos
 					if (this.lineNumber%1000000 == 0){
 						System.out.println("Quantidade de registros inseridos: "+this.lineNumber/2);
 					}
