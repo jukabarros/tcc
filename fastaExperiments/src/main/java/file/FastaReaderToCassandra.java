@@ -64,11 +64,11 @@ public class FastaReaderToCassandra {
 		this.readFastaDirectory(fastaFilePath, repeat, srsSize);
 		
 		List<String> idSequences = new ArrayList<String>();
-		idSequences.add(">1303_40_1460_F3"); //cabra4
-		idSequences.add(">1303_42_1190_F3"); // cabra6
-		idSequences.add(">1303_37_58_F3"); // cabra5
-		idSequences.add(">1303_43_50_F3"); // cabra6
-		idSequences.add(">1303_38_874_F3"); // cabra7
+		idSequences.add(">557_2036_1480_F3"); //cabra4
+		idSequences.add(">746_81_294_F3"); // cabra6
+		idSequences.add(">560_29_216_F3"); // cabra5
+		idSequences.add(">929_2036_1706_F3"); // cabra6
+		idSequences.add(">932_36_394_F3"); // cabra7
 		System.out.println("\n\n** Iniciando as Consultas dos arquivos");
 		this.createConsultTimeTxt(repeat, srsSize);
 		this.bwCassandra.write("****** CONSULTA ******\n");

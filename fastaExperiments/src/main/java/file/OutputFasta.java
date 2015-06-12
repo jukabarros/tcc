@@ -95,7 +95,6 @@ public class OutputFasta {
 				int seqDNAlength = seqDNA.length()/srsSize;
 
 				for (int i = 1; i <= srsSize; i++) {
-					System.out.println(">"+brokenStr[i]);
 					CharSequence uniqueSequenceDNA = seqDNA.subSequence(breakSeq, breakSeq+seqDNAlength);
 					this.fw.write(">"+brokenStr[i]+'\n'+uniqueSequenceDNA+'\n');
 					breakSeq += seqDNAlength;
