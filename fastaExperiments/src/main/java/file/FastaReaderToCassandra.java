@@ -215,32 +215,32 @@ public class FastaReaderToCassandra {
 	 * @return
 	 */
 	private List<String> addAllIdSeqs(List<String> allIDSeq){
-		allIDSeq.add(">557_2036_1480_F3"); //cabra4
-		allIDSeq.add(">746_81_294_F3"); // cabra6
-		allIDSeq.add(">560_29_216_F3"); // cabra5
-		allIDSeq.add(">929_2036_1706_F3"); // cabra6
-		allIDSeq.add(">932_36_394_F3"); // cabra7
-		allIDSeq.add(">1303_43_1188_F3");
-		allIDSeq.add(">1303_346_24_F3");
+		allIDSeq.add(">388_1856_588_F3"); 
+		allIDSeq.add(">>388_1856_699_F3"); 
+		allIDSeq.add(">388_1856_607_F3"); 
+		allIDSeq.add(">388_1856_297_F3"); 
+		allIDSeq.add(">388_1856_475_F3"); 
+		allIDSeq.add(">373_41_166_F3");
+		allIDSeq.add(">473_1107_97_F3");
 		allIDSeq.add(">1303_42_1190_F3");
-		allIDSeq.add(">929_1929_1490_F3");
-		allIDSeq.add(">1303_43_80_F3");
-		allIDSeq.add(">929_2039_1506_F3");
-		allIDSeq.add(">746_142_260_F3");
-		allIDSeq.add(">929_2039_1078_F3");
-		allIDSeq.add(">1303_346_124_F3");
-		allIDSeq.add(">1303_43_1458_F3");
-		allIDSeq.add(">746_142_200_F3");
-		allIDSeq.add(">929_2039_1280_F3");
-		allIDSeq.add(">929_1929_1490_F3");
-		allIDSeq.add(">929_2038_1875_F3");
-		allIDSeq.add(">746_142_280_F3");
-		allIDSeq.add(">1307_628_196_F3");
-		allIDSeq.add(">1307_628_250_F3");
-		allIDSeq.add(">746_142_175_F3");
-		allIDSeq.add(">1307_628_256_F3");
-		allIDSeq.add(">929_1929_1575_F3");
-		allIDSeq.add(">1307_628_141_F3");
+		allIDSeq.add(">388_1855_1376_F3");
+		allIDSeq.add(">373_65_90_F3");
+		allIDSeq.add(">932_30_347_F3");
+		allIDSeq.add(">557_2036_1745_F3");
+		allIDSeq.add(">373_42_212_F3");
+		allIDSeq.add(">373_68_16_F3");
+		allIDSeq.add(">932_30_80_F3");
+		allIDSeq.add(">557_2038_1540_F3");
+		allIDSeq.add(">373_68_369_F3");
+		allIDSeq.add(">473_1107_154_F3");
+		allIDSeq.add(">932_31_598_F3");
+		allIDSeq.add(">932_31_203_F3");
+		allIDSeq.add(">373_68_161_F3");
+		allIDSeq.add(">1060_1173_1051_F3");
+		allIDSeq.add(">932_32_243_F3");
+		allIDSeq.add(">373_41_117_F3");
+		allIDSeq.add(">557_2037_1918_F3");
+		allIDSeq.add(">1060_1173_984_F3");
 		return allIDSeq;
 	}
 	
