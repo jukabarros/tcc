@@ -67,7 +67,7 @@ public class Application {
 		
 		String idSeqDNA = prop.getProperty("id.seqDNA");
 		String extractData = prop.getProperty("extract.data").toUpperCase();
-		
+		String insertAndSearch = prop.getProperty("insert.and.search").toUpperCase();
 		long startTime = System.currentTimeMillis();
 		/*
 		 * INSERINDO / EXTRAINDO DO BD
@@ -75,15 +75,29 @@ public class Application {
 		if(db.equals("CASSANDRA")){
 			if (allExperiment.equals("YES")){
 				for (int i = 1; i <= numOfRepeat; i++) {
-//					CassandraCreate.main(null);
+					System.out.println("***************** Repetição: "+i);
+					CassandraCreate.main(null);
 					FastaReaderToCassandra frToCassandra = new FastaReaderToCassandra();
 					frToCassandra.doAllExperiment(fastaDirectory, i, srsSize);
 				}
 				
 			}else if(insertData.equals("YES")){
+				for (int i = 1; i <= numOfRepeat; i++) {
+					
 				CassandraCreate.main(null);
-				FastaReaderToCassandra frToCassandra = new FastaReaderToCassandra();
-				frToCassandra.readFastaDirectory(fastaDirectory, 0, srsSize);
+				if (insertAndSearch.equals("YES")){
+					System.out.println("\n**** Realizando a curva de consulta");
+					for (int j = 1; j <= numOfRepeat; j++) {
+						System.out.println("***************** Repetição: "+j);
+						FastaReaderToCassandra frToCassandra = new FastaReaderToCassandra();
+						frToCassandra.readFastaDirectoryAndSearch(fastaDirectory, i);
+					}
+					break;
+				}else{
+					FastaReaderToCassandra frToCassandra = new FastaReaderToCassandra();
+					frToCassandra.readFastaDirectory(fastaDirectory, i, srsSize);
+				}
+				}
 				
 			}else{
 				CassandraDAO dao = new CassandraDAO();
@@ -107,9 +121,22 @@ public class Application {
 				
 			}
 			else if(insertData.equals("YES")){
-				MongoDBCreate.main(null);
-				FastaReaderToMongoDB frToMongo = new FastaReaderToMongoDB();
-				frToMongo.readFastaDirectory(fastaDirectory, 0, srsSize);
+				for (int i = 1; i <= numOfRepeat; i++) {
+
+					MongoDBCreate.main(null);
+					if (insertAndSearch.equals("YES")){
+						System.out.println("\n**** Realizando a curva de consulta");
+						for (int j = 1; j <= numOfRepeat; j++) {
+							System.out.println("***************** Repetição: "+j);
+							FastaReaderToMongoDB frToMongo = new FastaReaderToMongoDB();
+							frToMongo.readFastaDirectoryAndSearch(fastaDirectory, i);
+						}
+						break;
+					}else{
+						FastaReaderToMongoDB frToMongo = new FastaReaderToMongoDB();
+						frToMongo.readFastaDirectory(fastaDirectory, i, srsSize);
+					}
+				}
 
 			}else{
 				MongoDBDAO dao = new MongoDBDAO();
@@ -133,9 +160,22 @@ public class Application {
 				
 			}
 			else if(insertData.equals("YES")){
-				MySQLCreate.main(null);
-				FastaReaderToMySQL frToMySQL = new FastaReaderToMySQL();
-				frToMySQL.readFastaDirectory(fastaDirectory, 1, srsSize);
+				for (int i = 1; i <= numOfRepeat; i++) {
+
+					MySQLCreate.main(null);
+					if (insertAndSearch.equals("YES")){
+						System.out.println("\n**** Realizando a curva de consulta");
+						for (int j = 1; j <= numOfRepeat; j++) {
+							System.out.println("***************** Repetição: "+j);
+							FastaReaderToMySQL frToMySQL = new FastaReaderToMySQL();
+							frToMySQL.readFastaDirectoryAndSearch(fastaDirectory, i);
+						}
+						break;
+					}else{
+						FastaReaderToMySQL frToMySQL = new FastaReaderToMySQL();
+						frToMySQL.readFastaDirectory(fastaDirectory, i, srsSize);
+					}
+				}
 
 			}else{
 				MySQLDAO dao = new MySQLDAO();

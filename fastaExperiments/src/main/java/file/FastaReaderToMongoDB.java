@@ -156,6 +156,106 @@ public class FastaReaderToMongoDB {
 		System.out.println("**** Fim da Inserção no MongoDB.");
 		System.out.println("**** Total de linhas inseridas no Banco: "+this.allLines/2);
 	}
+	
+	/**
+	 * Ler todos os Fasta de um repositorio especifico e realiza a consulta
+	 * cada vez que um arquivo é inserido. É usado para fazer a curva de consulta
+	 * @param fastaDirectory
+	 * @throws SQLException 
+	 * @throws IOException 
+	 */
+	public void readFastaDirectoryAndSearch(String fastaFilePath, int repeat) throws SQLException, IOException{
+		File directory = new File(fastaFilePath);
+		//get all the files from a directory
+		File[] fList = directory.listFiles();
+		// Ordernando a lista por ordem alfabetica
+		Arrays.sort(fList);
+		
+		List<String> idSequences = new ArrayList<String>();
+		idSequences = this.addAllIdSeqs(idSequences);
+		
+		int paramConsult = 0;
+		for (File file : fList){
+			if (file.isFile()){
+				System.out.println("** Lendo o arquivo: "+file.getName());
+				if (file.getName().endsWith(".fasta") || file.getName().endsWith(".fa")){
+					
+					this.createAnalistSearchTimeTxt(file.getName());
+					this.bwMongoDB.write("****** CURVA DE CONSULTA ******\n");
+					
+					long sizeInMb = file.length() / (1024 * 1024);
+					
+					System.out.println("* Indexando o arquivo "+file.getName());
+					this.dao.insertFastaInfo(file.getName(), "Inserir comentario", sizeInMb);
+					
+					System.out.println("* Inserindo o conteudo do arquivo no BD");
+					this.dao.getCollection(file.getName());
+					this.lineNumber = 0;
+					this.readFastaFile(file.getAbsolutePath());
+					
+					System.out.println("\n\n** Iniciando as Consultas");
+					// 5 -> Numero de amostra para o experimento
+					for (int i = 0; i < 5; i++) {
+						long startTime = System.currentTimeMillis();
+						this.dao.findByID(idSequences.get(paramConsult));
+						long endTime = System.currentTimeMillis();
+
+						String timeExecutionSTR = this.calcTimeExecution(startTime, endTime);
+						this.bwMongoDB.write(idSequences.get(paramConsult) + '\t' + "tempo: "+'\t'+timeExecutionSTR+'\n');
+						
+						paramConsult++;
+					}
+					this.bwMongoDB.close();
+					this.fwMongoDB = null;
+					this.fileTxtMongoDB = null;
+					
+					// Atualizando o numero de linhas inseridas no banco
+					this.dao.updateNumOfLines(file.getName(), this.lineNumber/2);
+					
+				}else {
+					System.out.println("*** Atenção "+file.getName()+ " não é um arquivo fasta");
+				}
+			}
+		}
+		
+		System.out.println("\n\n\n********** FIM ************");
+	}
+	
+	/**
+	 * Metodo que adiciona os ids que serao consultados
+	 * @param allIDSeq
+	 * @return
+	 */
+	private List<String> addAllIdSeqs(List<String> allIDSeq){
+		allIDSeq.add(">557_2036_1480_F3"); //cabra4
+		allIDSeq.add(">746_81_294_F3"); // cabra6
+		allIDSeq.add(">560_29_216_F3"); // cabra5
+		allIDSeq.add(">929_2036_1706_F3"); // cabra6
+		allIDSeq.add(">932_36_394_F3"); // cabra7
+		allIDSeq.add(">1303_43_1188_F3");
+		allIDSeq.add(">1303_346_24_F3");
+		allIDSeq.add(">1303_42_1190_F3");
+		allIDSeq.add(">929_1929_1490_F3");
+		allIDSeq.add(">1303_43_80_F3");
+		allIDSeq.add(">929_2039_1506_F3");
+		allIDSeq.add(">746_142_260_F3");
+		allIDSeq.add(">929_2039_1078_F3");
+		allIDSeq.add(">1303_346_124_F3");
+		allIDSeq.add(">1303_43_1458_F3");
+		allIDSeq.add(">746_142_200_F3");
+		allIDSeq.add(">929_2039_1280_F3");
+		allIDSeq.add(">929_1929_1490_F3");
+		allIDSeq.add(">929_2038_1875_F3");
+		allIDSeq.add(">746_142_280_F3");
+		allIDSeq.add(">1307_628_196_F3");
+		allIDSeq.add(">1307_628_250_F3");
+		allIDSeq.add(">746_142_175_F3");
+		allIDSeq.add(">1307_628_256_F3");
+		allIDSeq.add(">929_1929_1575_F3");
+		allIDSeq.add(">1307_628_141_F3");
+		return allIDSeq;
+	}
+	
 	/**
 	 * Ler um fasta especifico e insere no MongoDB
 	 * @param fastaFile
@@ -269,6 +369,27 @@ public class FastaReaderToMongoDB {
 	 */
 	private void createConsultTimeTxt(int numOfRepeat, int srsSize) throws IOException{
 		this.fileTxtMongoDB = new File("test_"+numOfRepeat+"_mongoDBConsultTime_SRS_"+srsSize+".txt");
+		this.fwMongoDB = new FileWriter(this.fileTxtMongoDB.getAbsoluteFile());
+		this.bwMongoDB = new BufferedWriter(this.fwMongoDB);
+		
+		// if file doesnt exists, then create it
+		if (!this.fileTxtMongoDB.exists()) {
+			this.fileTxtMongoDB.createNewFile();
+		}
+		
+	}
+	
+	/**
+	 * Cria um arquivo txt que informa o tempo de consulta cada vez que um arquivo eh inserido
+	 * Eh usado durante o experimento de curva de consulta.
+	 * A escrita é feita no metodo que lista os diretorios
+	 * 
+	 * @param fastaFile
+	 * @param timeExecution
+	 * @throws IOException 
+	 */
+	private void createAnalistSearchTimeTxt(String fileName) throws IOException{
+		this.fileTxtMongoDB = new File("analistSearch-"+fileName+"_mongoDB_.txt");
 		this.fwMongoDB = new FileWriter(this.fileTxtMongoDB.getAbsoluteFile());
 		this.bwMongoDB = new BufferedWriter(this.fwMongoDB);
 		
