@@ -32,7 +32,7 @@ public class Application {
 	 * 0 - Arquivo ou Diretorio do fasta
 	 * 1 - Tamanho da SRS
 	 */
-	public static void main(String[] args) throws IOException, SQLException {
+	public static void main(String[] args) throws IOException, SQLException, InterruptedException {
 		Application app = new Application();
 		String fastaDirectory = null;
 		String fileNameOutput = null;
@@ -85,13 +85,11 @@ public class Application {
 				for (int i = 1; i <= numOfRepeat; i++) {
 					
 				CassandraCreate.main(null);
+				System.out.println("***************** Repetição: "+i);
 				if (insertAndSearch.equals("YES")){
 					System.out.println("\n**** Realizando a curva de consulta");
-					for (int j = 1; j <= numOfRepeat; j++) {
-						System.out.println("***************** Repetição: "+j);
-						FastaReaderToCassandra frToCassandra = new FastaReaderToCassandra();
-						frToCassandra.readFastaDirectoryAndSearch(fastaDirectory, i);
-					}
+					FastaReaderToCassandra frToCassandra = new FastaReaderToCassandra();
+					frToCassandra.readFastaDirectoryAndSearch(fastaDirectory, i);
 					break;
 				}else{
 					FastaReaderToCassandra frToCassandra = new FastaReaderToCassandra();
@@ -124,13 +122,11 @@ public class Application {
 				for (int i = 1; i <= numOfRepeat; i++) {
 
 					MongoDBCreate.main(null);
+					System.out.println("***************** Repetição: "+i);
 					if (insertAndSearch.equals("YES")){
 						System.out.println("\n**** Realizando a curva de consulta");
-						for (int j = 1; j <= numOfRepeat; j++) {
-							System.out.println("***************** Repetição: "+j);
-							FastaReaderToMongoDB frToMongo = new FastaReaderToMongoDB();
-							frToMongo.readFastaDirectoryAndSearch(fastaDirectory, i);
-						}
+						FastaReaderToMongoDB frToMongo = new FastaReaderToMongoDB();
+						frToMongo.readFastaDirectoryAndSearch(fastaDirectory, i);
 						break;
 					}else{
 						FastaReaderToMongoDB frToMongo = new FastaReaderToMongoDB();
@@ -163,13 +159,11 @@ public class Application {
 				for (int i = 1; i <= numOfRepeat; i++) {
 
 					MySQLCreate.main(null);
+					System.out.println("***************** Repetição: "+i);
 					if (insertAndSearch.equals("YES")){
 						System.out.println("\n**** Realizando a curva de consulta");
-						for (int j = 1; j <= numOfRepeat; j++) {
-							System.out.println("***************** Repetição: "+j);
-							FastaReaderToMySQL frToMySQL = new FastaReaderToMySQL();
-							frToMySQL.readFastaDirectoryAndSearch(fastaDirectory, i);
-						}
+						FastaReaderToMySQL frToMySQL = new FastaReaderToMySQL();
+						frToMySQL.readFastaDirectoryAndSearch(fastaDirectory, i);
 						break;
 					}else{
 						FastaReaderToMySQL frToMySQL = new FastaReaderToMySQL();

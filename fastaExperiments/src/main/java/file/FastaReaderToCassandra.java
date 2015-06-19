@@ -215,32 +215,41 @@ public class FastaReaderToCassandra {
 	 * @return
 	 */
 	private List<String> addAllIdSeqs(List<String> allIDSeq){
-		allIDSeq.add(">388_1856_588_F3"); 
-		allIDSeq.add(">>388_1856_699_F3"); 
-		allIDSeq.add(">388_1856_607_F3"); 
-		allIDSeq.add(">388_1856_297_F3"); 
-		allIDSeq.add(">388_1856_475_F3"); 
-		allIDSeq.add(">373_41_166_F3");
-		allIDSeq.add(">473_1107_97_F3");
-		allIDSeq.add(">1303_42_1190_F3");
-		allIDSeq.add(">388_1855_1376_F3");
-		allIDSeq.add(">373_65_90_F3");
-		allIDSeq.add(">932_30_347_F3");
-		allIDSeq.add(">557_2036_1745_F3");
-		allIDSeq.add(">373_42_212_F3");
-		allIDSeq.add(">373_68_16_F3");
-		allIDSeq.add(">932_30_80_F3");
-		allIDSeq.add(">557_2038_1540_F3");
-		allIDSeq.add(">373_68_369_F3");
-		allIDSeq.add(">473_1107_154_F3");
-		allIDSeq.add(">932_31_598_F3");
-		allIDSeq.add(">932_31_203_F3");
-		allIDSeq.add(">373_68_161_F3");
-		allIDSeq.add(">1060_1173_1051_F3");
-		allIDSeq.add(">932_32_243_F3");
-		allIDSeq.add(">373_41_117_F3");
-		allIDSeq.add(">557_2037_1918_F3");
-		allIDSeq.add(">1060_1173_984_F3");
+		// Consulta com 1 milhao
+		allIDSeq.add(">385_828_1910_F3"); // Arquivo a1milhao linha 1 500 505
+		allIDSeq.add(">375_1783_953_F3"); // Arquivo a1milhao linha 265341
+		allIDSeq.add(">932_31_598_F3"); // Nao existe no BD
+		allIDSeq.add(">374_1290_504_F3"); // Arquivo a1milhao linha 100 001
+		allIDSeq.add(">388_1856_792_F3"); // Arquivo a1milhao linha 1 999 999
+		
+		// Consulta com 5milhoes
+		allIDSeq.add(">377_1306_66_F3"); // Arquivo b5milhoes linha 500 543
+		allIDSeq.add(">381_489_342_F3"); // Arquivo b5milhoes linha 965 441
+		allIDSeq.add(">1060_1173_984_F3"); // Nao existe no BD 
+		allIDSeq.add(">400_700_648_F3"); // Arquivo b5milhoes linha 3 456 777 
+		allIDSeq.add(">481_1416_1736_F3"); // Arquivo c10milhoes linha 1 112 223 
+		
+		// Consulta com 10milhoes
+		allIDSeq.add(">476_1737_1136_F3"); // Arquivo c10milhoes linha 455 239
+		allIDSeq.add(">380_959_822_F3"); // Arquivo a1milhao linha 865 447
+		allIDSeq.add(">9999_999_9993"); // Nao existe no BD
+		allIDSeq.add(">473_1748_181_F3"); // Arquivo c10milhoes linha 44 441
+		allIDSeq.add(">373_56_358_F3"); // Arquivo a1milhao linha 23
+
+		// Consulta com 15 milhoes
+		allIDSeq.add(">888888888"); // Nao existe
+		allIDSeq.add(">935_763_1226_F3"); // Arquivo d15 milhoes linha 666 667
+		allIDSeq.add(">380_968_305_F3"); // Arquivo b2milhoes linha 865 999
+		allIDSeq.add(">932_1711_642_F3"); // Arquivo d15 milhoes linha 99 999
+		allIDSeq.add(">473_1184_1067_F3"); // Arquivo c10milhoes linha 5431
+		
+		// Consulta com 20 milhoes
+		allIDSeq.add(">1060_1174_4_F3"); // Arquivo e20milhoes 111
+		allIDSeq.add(">1078_594_607_F3"); // Arquivo e20milhoes 3 456 789
+		allIDSeq.add(">379_1585_361_F3"); // Arquivo a1milhao linha 777 777
+		allIDSeq.add(">373_246_244_F3"); // Arquivo b5milhoes 667
+		allIDSeq.add(">1065_919_326_F3"); // Arquivo e20milhoes 1 234 569
+		
 		return allIDSeq;
 	}
 	
