@@ -164,8 +164,9 @@ public class FastaReaderToMySQL {
 	 * @param fastaDirectory
 	 * @throws SQLException 
 	 * @throws IOException 
+	 * @throws InterruptedException 
 	 */
-	public void readFastaDirectoryAndSearch(String fastaFilePath, int repeat) throws SQLException, IOException{
+	public void readFastaDirectoryAndSearch(String fastaFilePath, int repeat) throws SQLException, IOException, InterruptedException{
 		File directory = new File(fastaFilePath);
 		//get all the files from a directory
 		File[] fList = directory.listFiles();
@@ -192,7 +193,7 @@ public class FastaReaderToMySQL {
 					
 					List<String> idSequences = new ArrayList<String>();
 					idSequences = this.addAllIdSeqs(idSequences);
-					
+					Thread.sleep(10000); // Aguarda 10 segundos para realizar consulta
 					System.out.println("\n\n** Iniciando as Consultas");
 					// 5 -> Numero de amostra para o experimento
 					for (int i = 0; i < 5; i++) {
@@ -202,6 +203,7 @@ public class FastaReaderToMySQL {
 
 						String timeExecutionSTR = this.calcTimeExecution(startTime, endTime);
 						this.bwMySQL.write(idSequences.get(paramConsult) + '\t' + "tempo: "+'\t'+timeExecutionSTR+'\n');
+						Thread.sleep(2000); // Aguarda 2 segundos para fazer outra consulta
 						paramConsult ++;
 					}
 					this.bwMySQL.close();

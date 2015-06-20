@@ -169,7 +169,7 @@ public class MongoDBDAO {
 			}
 		}
 		if (listFastaContent.isEmpty()){
-			System.out.println("*** ID de Sequência não encontrado no Banco de dados :(");
+			System.out.println("*** ID "+idSeq+" não encontrado no Banco de dados :(");
 		}
 	}
 	

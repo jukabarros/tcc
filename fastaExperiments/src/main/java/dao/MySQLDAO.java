@@ -244,7 +244,7 @@ public class MySQLDAO{
 			listFastaContent.add(fastaInfo);
 		}
 		if (listFastaContent.isEmpty()){
-			System.out.println("*** ID não encontrado no Banco de dados :(");
+			System.out.println("*** ID "+idSeqDNA+" não encontrado no Banco de dados :(");
 		}
 		afterExecuteQuery();
 		
