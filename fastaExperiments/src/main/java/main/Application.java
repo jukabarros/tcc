@@ -89,7 +89,7 @@ public class Application {
 				if (insertAndSearch.equals("YES")){
 					System.out.println("\n**** Realizando a curva de consulta");
 					FastaReaderToCassandra frToCassandra = new FastaReaderToCassandra();
-					frToCassandra.readFastaDirectoryAndSearch(fastaDirectory, i);
+					frToCassandra.readFastaDirectoryAndSearch(fastaDirectory, i, srsSize);
 					break;
 				}else{
 					FastaReaderToCassandra frToCassandra = new FastaReaderToCassandra();
@@ -126,7 +126,7 @@ public class Application {
 					if (insertAndSearch.equals("YES")){
 						System.out.println("\n**** Realizando a curva de consulta");
 						FastaReaderToMongoDB frToMongo = new FastaReaderToMongoDB();
-						frToMongo.readFastaDirectoryAndSearch(fastaDirectory, i);
+						frToMongo.readFastaDirectoryAndSearch(fastaDirectory, i, srsSize);
 						break;
 					}else{
 						FastaReaderToMongoDB frToMongo = new FastaReaderToMongoDB();
@@ -163,7 +163,7 @@ public class Application {
 					if (insertAndSearch.equals("YES")){
 						System.out.println("\n**** Realizando a curva de consulta");
 						FastaReaderToMySQL frToMySQL = new FastaReaderToMySQL();
-						frToMySQL.readFastaDirectoryAndSearch(fastaDirectory, i);
+						frToMySQL.readFastaDirectoryAndSearch(fastaDirectory, i, srsSize);
 						break;
 					}else{
 						FastaReaderToMySQL frToMySQL = new FastaReaderToMySQL();

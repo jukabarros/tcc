@@ -13,9 +13,6 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Properties;
-
-import config.ReadProperties;
 import dao.CassandraDAO;
 
 public class FastaReaderToCassandra {
@@ -129,7 +126,7 @@ public class FastaReaderToCassandra {
 					System.out.println("* Inserindo o conteudo do arquivo no BD");
 					this.lineNumber = 0;
 					long startTime = System.currentTimeMillis();
-					this.readFastaFile(file.getAbsolutePath(), file.getName());
+					this.readFastaFile(file.getAbsolutePath(), file.getName(), srsSize);
 					long endTime = System.currentTimeMillis();
 					this.dao.updateNumOfLinesFastaInfo(file.getName(), lineNumber/2);
 					// Calculando o tempo de insercao de cada arquivo
@@ -157,7 +154,7 @@ public class FastaReaderToCassandra {
 	 * @throws IOException 
 	 * @throws InterruptedException 
 	 */
-	public void readFastaDirectoryAndSearch(String fastaFilePath, int repeat) throws SQLException, IOException, InterruptedException{
+	public void readFastaDirectoryAndSearch(String fastaFilePath, int repeat, int srsSize) throws SQLException, IOException, InterruptedException{
 		File directory = new File(fastaFilePath);
 		//get all the files from a directory
 		File[] fList = directory.listFiles();
@@ -179,7 +176,7 @@ public class FastaReaderToCassandra {
 					
 					System.out.println("* Inserindo o conteudo do arquivo no BD");
 					this.lineNumber = 0;
-					this.readFastaFile(file.getAbsolutePath(), file.getName());
+					this.readFastaFile(file.getAbsolutePath(), file.getName(), srsSize);
 					
 					List<String> idSequences = new ArrayList<String>();
 					idSequences = this.addAllIdSeqs(idSequences);
@@ -260,12 +257,10 @@ public class FastaReaderToCassandra {
 	 * @param fastaFile
 	 * @throws IOException 
 	 */
-	public void readFastaFile(String fastaFile, String fastaFileName) throws IOException{
+	public void readFastaFile(String fastaFile, String fastaFileName, int srsSize) throws IOException{
 		BufferedReader br = null;
 		String line = "";
 		String fastaSplitBy = "\n";
-		Properties prop = ReadProperties.getProp();
-		int rssSize = Integer.parseInt(prop.getProperty("srs.quantity"))*2;
 		int numOfLine = 0;
 		try {
 			br = new BufferedReader(new FileReader(fastaFile));
@@ -282,14 +277,14 @@ public class FastaReaderToCassandra {
 				}else if (numOfLine > 1){
 					seqDNA += brokenFasta[0];
 				}
-				if (numOfLine%rssSize == 0){
+				if (numOfLine%srsSize == 0){
 					this.dao.insertData(fastaFileName, idSeq, seqDNA, this.lineNumber/2);
 					idSeq = "";
 					seqDNA = "";
-					// Printando a cada 500 000 registro inseridos
-					if (this.lineNumber%1000000 == 0){
-						System.out.println("Quantidade de registros inseridos: "+this.lineNumber/2);
-					}
+				}
+				// Printando a cada 500 000 registro inseridos
+				if (this.lineNumber%1000000 == 0){
+					System.out.println("Quantidade de registros inseridos: "+this.lineNumber/2);
 				}
 			}
 			this.dao.afterExecuteQuery();

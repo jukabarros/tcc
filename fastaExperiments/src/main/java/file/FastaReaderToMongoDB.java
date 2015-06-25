@@ -13,9 +13,6 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Properties;
-
-import config.ReadProperties;
 import dao.MongoDBDAO;
 
 public class FastaReaderToMongoDB {
@@ -134,7 +131,7 @@ public class FastaReaderToMongoDB {
 					this.lineNumber = 0;
 					
 					long startTime = System.currentTimeMillis();
-					this.readFastaFile(file.getAbsolutePath());
+					this.readFastaFile(file.getAbsolutePath(), srsSize);
 					long endTime = System.currentTimeMillis();
 					
 					// Atualizando o numero de linhas inseridas no banco
@@ -165,7 +162,7 @@ public class FastaReaderToMongoDB {
 	 * @throws IOException 
 	 * @throws InterruptedException 
 	 */
-	public void readFastaDirectoryAndSearch(String fastaFilePath, int repeat) throws SQLException, IOException, InterruptedException{
+	public void readFastaDirectoryAndSearch(String fastaFilePath, int repeat, int srsSize) throws SQLException, IOException, InterruptedException{
 		File directory = new File(fastaFilePath);
 		//get all the files from a directory
 		File[] fList = directory.listFiles();
@@ -192,7 +189,7 @@ public class FastaReaderToMongoDB {
 					System.out.println("* Inserindo o conteudo do arquivo no BD");
 					this.dao.getCollection(file.getName());
 					this.lineNumber = 0;
-					this.readFastaFile(file.getAbsolutePath());
+					this.readFastaFile(file.getAbsolutePath(), srsSize);
 					Thread.sleep(10000); // Aguarda 10 segundos para realizar consulta
 					System.out.println("\n\n** Iniciando as Consultas");
 					// 5 -> Numero de amostra para o experimento
@@ -271,12 +268,10 @@ public class FastaReaderToMongoDB {
 	 * @param fastaFile
 	 * @throws IOException 
 	 */
-	public void readFastaFile(String fastaFile) throws IOException{
+	public void readFastaFile(String fastaFile, int srsSize) throws IOException{
 		BufferedReader br = null;
 		String line = "";
 		String fastaSplitBy = "\n";
-		Properties prop = ReadProperties.getProp();
-		int srsSize = Integer.parseInt(prop.getProperty("srs.quantity"))*2;
 		int numOfLine = 0;
 		try {
 			br = new BufferedReader(new FileReader(fastaFile));

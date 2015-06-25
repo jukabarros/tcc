@@ -13,9 +13,6 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Properties;
-
-import config.ReadProperties;
 import dao.MySQLDAO;
 
 public class FastaReaderToMySQL {
@@ -134,7 +131,7 @@ public class FastaReaderToMySQL {
 					System.out.println("* Inserindo o conteudo do arquivo no BD");
 					this.lineNumber = 0;
 					long startTime = System.currentTimeMillis();
-					this.readFastaFile(file.getAbsolutePath(), idFastaInfo);
+					this.readFastaFile(file.getAbsolutePath(), idFastaInfo, srsSize);
 					long endTime = System.currentTimeMillis();
 					
 					// Atualizando o numero de linhas no arquivo
@@ -166,7 +163,7 @@ public class FastaReaderToMySQL {
 	 * @throws IOException 
 	 * @throws InterruptedException 
 	 */
-	public void readFastaDirectoryAndSearch(String fastaFilePath, int repeat) throws SQLException, IOException, InterruptedException{
+	public void readFastaDirectoryAndSearch(String fastaFilePath, int repeat, int srsSize) throws SQLException, IOException, InterruptedException{
 		File directory = new File(fastaFilePath);
 		//get all the files from a directory
 		File[] fList = directory.listFiles();
@@ -189,7 +186,7 @@ public class FastaReaderToMySQL {
 					int idFastaInfo = this.dao.getIDFastaInfo(file.getName());
 					System.out.println("* Inserindo o conteudo do arquivo no BD");
 					this.lineNumber = 0;
-					this.readFastaFile(file.getAbsolutePath(), idFastaInfo);
+					this.readFastaFile(file.getAbsolutePath(), idFastaInfo, srsSize);
 					
 					List<String> idSequences = new ArrayList<String>();
 					idSequences = this.addAllIdSeqs(idSequences);
@@ -270,7 +267,7 @@ public class FastaReaderToMySQL {
 	 * @param fastaFile
 	 * @throws SQLException 
 	 */
-	public void readFastaFile(String fastaFile, int idFastaInfo) throws SQLException{
+	public void readFastaFile(String fastaFile, int idFastaInfo, int srsSize) throws SQLException{
 		BufferedReader br = null;
 		String line = "";
 		String fastaSplitBy = "\n";
@@ -282,8 +279,6 @@ public class FastaReaderToMySQL {
 			String seqDNA = "";
 			
 			this.dao.beforeExecuteQuery();
-			Properties prop = ReadProperties.getProp();
-			int srsSize = Integer.parseInt(prop.getProperty("srs.quantity"))*2;
 			while ((line = br.readLine()) != null) {
 				numOfLine++;
 				this.allLines++;
