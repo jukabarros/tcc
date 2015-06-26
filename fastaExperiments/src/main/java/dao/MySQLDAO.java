@@ -20,9 +20,12 @@ public class MySQLDAO{
 	
 	private Connection conn;
 	
+	private PreparedStatement queryExec;
+	
 	public MySQLDAO() throws IOException {
 		this.query = null;
 		this.conn = null;
+		this.query = null;
 	}
 	
 	/*
@@ -41,6 +44,7 @@ public class MySQLDAO{
 	}
 	
 	public void afterExecuteQuery() throws SQLException{
+		this.queryExec.close();
 		this.conn.close();
 	}
 	
@@ -49,31 +53,36 @@ public class MySQLDAO{
 		try{
 			beforeExecuteQuery();
 			
-			query = "INSERT INTO fasta_info (file_name, size, comment) VALUES (?,?,?);";
-			PreparedStatement queryExec = this.conn.prepareStatement(query);
-			queryExec.setString(1, fileName);
-			queryExec.setLong(2, size);
-			queryExec.setString(3, comment);
-			queryExec.execute();
-			queryExec.close();
+			this.query = "INSERT INTO fasta_info (file_name, size, comment) VALUES (?,?,?);";
+			this.queryExec = this.conn.prepareStatement(query);
+			this.queryExec.setString(1, fileName);
+			this.queryExec.setLong(2, size);
+			this.queryExec.setString(3, comment);
+			this.queryExec.execute();
 			
 			afterExecuteQuery();
 		}catch (Exception e){
 			System.out.println("Erro ao inserir o registro: :( \n"+e.getMessage());
 		}
 	}
+	/**
+	 * prepara a query para inserir muitos dados
+	 * @throws SQLException
+	 */
+	public void prepareInsertFastaCollect() throws SQLException{
+		this.query = "INSERT INTO fasta_collect (id_seq, seq_dna, line, fasta_info) VALUES (?,?,?,?);";
+		this.queryExec = this.conn.prepareStatement(query);
+	}
 	
 	public void insertFastaCollect(String idSeq, String seqDNA, int line, int fastaInfo) throws SQLException{
 		try{
 			
-			query = "INSERT INTO fasta_collect (id_seq, seq_dna, line, fasta_info) VALUES (?,?,?,?);";
-			PreparedStatement queryExec = this.conn.prepareStatement(query);
-			queryExec.setString(1, idSeq);
-			queryExec.setString(2, seqDNA);
-			queryExec.setInt(3, line);
-			queryExec.setInt(4, fastaInfo);
-			queryExec.execute();
-			queryExec.close();
+			this.queryExec.setString(1, idSeq);
+			this.queryExec.setString(2, seqDNA);
+			this.queryExec.setInt(3, line);
+			this.queryExec.setInt(4, fastaInfo);
+			this.queryExec.execute();
+			
 			
 		}catch (Exception e){
 			System.out.println("Erro ao inserir o registro: :( \n"+e.getMessage());
@@ -91,11 +100,10 @@ public class MySQLDAO{
 		try{
 			this.beforeExecuteQuery();
 			this.query = "UPDATE fasta_info SET num_line = ? WHERE file_name = ?;";
-			PreparedStatement queryExec = this.conn.prepareStatement(this.query);
-			queryExec.setInt(1, numOfLines);
-			queryExec.setString(2, fileName);
-			queryExec.execute();
-			queryExec.close();
+			this.queryExec = this.conn.prepareStatement(this.query);
+			this.queryExec.setInt(1, numOfLines);
+			this.queryExec.setString(2, fileName);
+			this.queryExec.execute();
 			this.afterExecuteQuery();
 		}catch (Exception e){
 			System.out.println("Erro ao atualizar o numero de linhas :( \n"+e.getMessage());
@@ -105,10 +113,10 @@ public class MySQLDAO{
 	public int getIDFastaInfo(String fileName) throws SQLException{
 		beforeExecuteQuery();
 		
-		query = "SELECT * FROM fasta_info WHERE file_name = ?";
-		PreparedStatement queryExec = this.conn.prepareStatement(query);
-		queryExec.setString(1, fileName);
-		ResultSet results = queryExec.executeQuery();
+		this.query = "SELECT * FROM fasta_info WHERE file_name = ?";
+		this.queryExec = this.conn.prepareStatement(query);
+		this.queryExec.setString(1, fileName);
+		ResultSet results = this.queryExec.executeQuery();
 		int id = 0;
 		while (results.next()){
 			id = results.getInt(1);
@@ -127,10 +135,10 @@ public class MySQLDAO{
 	 * @throws SQLException
 	 */
 	private String getFileNameFastaInfo(int idFastaInfo) throws SQLException{
-		query = "SELECT * FROM fasta_info WHERE id = ?";
-		PreparedStatement queryExec = this.conn.prepareStatement(query);
-		queryExec.setInt(1, idFastaInfo);
-		ResultSet results = queryExec.executeQuery();
+		this.query = "SELECT * FROM fasta_info WHERE id = ?";
+		this.queryExec = this.conn.prepareStatement(query);
+		this.queryExec.setInt(1, idFastaInfo);
+		ResultSet results = this.queryExec.executeQuery();
 		String fileName = null;
 		while (results.next()){
 			fileName = results.getString(2);
@@ -148,9 +156,9 @@ public class MySQLDAO{
 	 */
 	private Integer getNumOfLinesFastaInfo(int idFastaInfo) throws SQLException{
 		this.query = "SELECT * FROM fasta_info WHERE id = ?";
-		PreparedStatement queryExec = this.conn.prepareStatement(this.query);
-		queryExec.setInt(1, idFastaInfo);
-		ResultSet results = queryExec.executeQuery();
+		this.queryExec = this.conn.prepareStatement(this.query);
+		this.queryExec.setInt(1, idFastaInfo);
+		ResultSet results = this.queryExec.executeQuery();
 		int numOfLine = 0;
 		while (results.next()){
 			numOfLine = results.getInt(4);
@@ -167,7 +175,7 @@ public class MySQLDAO{
 	 * @throws SQLException
 	 * @throws IOException 
 	 */
-	public void findByFilename(String fileName, int repeat) throws SQLException, IOException{
+	public void findByFilename(String fileName, int repeat, int srsSize) throws SQLException, IOException{
 		// Recuperando o id do arquivo
 		int fileID = this.getIDFastaInfo(fileName);
 		OutputFasta outputFasta = new OutputFasta();
@@ -178,11 +186,11 @@ public class MySQLDAO{
 		outputFasta.createFastaFile(repeat+fileName);
 		if (numOfLine <= 500000){
 			this.query = "SELECT TRIM(id_seq), TRIM(seq_dna) FROM fasta_collect WHERE fasta_info = ?;";
-			PreparedStatement queryExec = this.conn.prepareStatement(this.query);
-			queryExec.setInt(1, fileID);
-			ResultSet results = queryExec.executeQuery();
+			this.queryExec = this.conn.prepareStatement(this.query);
+			this.queryExec.setInt(1, fileID);
+			ResultSet results = this.queryExec.executeQuery();
 			while (results.next()){
-				outputFasta.writeFastaFile(results.getString(1), results.getString(2));
+				outputFasta.writeFastaFile(results.getString(1), results.getString(2), srsSize);
 			}
 		}else{
 			int numOfRecords = 0;
@@ -197,15 +205,14 @@ public class MySQLDAO{
 							+ "fasta_collect WHERE fasta_info = ? LIMIT "+numOfRecords+", 500000;";
 				}
 				numOfRecords += 500000;
-				PreparedStatement queryExec = this.conn.prepareStatement(this.query);
-				queryExec.setInt(1, fileID);
-				ResultSet results = queryExec.executeQuery();
+				this.queryExec = this.conn.prepareStatement(this.query);
+				this.queryExec.setInt(1, fileID);
+				ResultSet results = this.queryExec.executeQuery();
 				while (results.next()){
-					outputFasta.writeFastaFile(results.getString(1), results.getString(2));
+					outputFasta.writeFastaFile(results.getString(1), results.getString(2), srsSize);
 				}
 				System.out.println("* Registros escritos: "+numOfRecords+"/"+numOfLine);
 
-				queryExec = null;
 				results = null;
 				this.query = null;
 			}
@@ -225,10 +232,10 @@ public class MySQLDAO{
 	public void findByID(String idSeqDNA) throws SQLException{
 		
 		beforeExecuteQuery();	
-		query = "SELECT * FROM fasta_collect WHERE id_seq = ?";
-		PreparedStatement queryExec = this.conn.prepareStatement(query);
-		queryExec.setString(1, idSeqDNA);
-		ResultSet results = queryExec.executeQuery();
+		this.query = "SELECT * FROM fasta_collect WHERE id_seq = ?";
+		this.queryExec = this.conn.prepareStatement(query);
+		this.queryExec.setString(1, idSeqDNA);
+		ResultSet results = this.queryExec.executeQuery();
 		List<FastaContent> listFastaContent = new ArrayList<FastaContent>();
 		while (results.next()){
 			// id fasta_info

@@ -87,7 +87,7 @@ public class FastaReaderToMySQL {
 		this.bwMySQL.write("****** EXTRAÇÃO ******\n");
 		for (int i = 0; i < this.allFilesNames.size(); i++) {
 			long startTime = System.currentTimeMillis();
-			this.dao.findByFilename(this.allFilesNames.get(i), repeat);
+			this.dao.findByFilename(this.allFilesNames.get(i), repeat, srsSize);
 			long endTime = System.currentTimeMillis();
 
 			String timeExecutionSTR = this.calcTimeExecution(startTime, endTime);
@@ -277,8 +277,9 @@ public class FastaReaderToMySQL {
 			br = new BufferedReader(new FileReader(fastaFile));
 			String idSeq = "";
 			String seqDNA = "";
-			
+			int allSrsSize = srsSize * 2;
 			this.dao.beforeExecuteQuery();
+			this.dao.prepareInsertFastaCollect();
 			while ((line = br.readLine()) != null) {
 				numOfLine++;
 				this.allLines++;
@@ -289,7 +290,7 @@ public class FastaReaderToMySQL {
 				}else if (numOfLine > 1){
 					seqDNA += brokenFasta[0];
 				}
-				if (numOfLine%srsSize == 0){
+				if (numOfLine%allSrsSize == 0){
 					this.dao.insertFastaCollect(idSeq, seqDNA, this.lineNumber/2, idFastaInfo);
 					idSeq = "";
 					seqDNA = "";

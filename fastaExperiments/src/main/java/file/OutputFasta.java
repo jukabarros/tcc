@@ -8,9 +8,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 
-import config.ReadProperties;
 import dna.FastaContent;
 
 /*
@@ -27,14 +25,11 @@ public class OutputFasta {
 	// Lista que ordena o conteudo vindo do bd
 	private List<Integer> order;
 	
-	private Properties prop;
-	
 	public OutputFasta() throws IOException {
 		this.fw = null;
 		this.file = null;
 		this.allFastaContent = new ArrayList<FastaContent>();
 		this.order = new ArrayList<Integer>();
-		this.prop = ReadProperties.getProp();
 	}
 	
 	public void createFastaFile(String filename) throws IOException{
@@ -74,7 +69,7 @@ public class OutputFasta {
 			String[] brokenValue = value.split(":");
 			String	id = brokenValue[0];
 			String	seqDNA = brokenValue[1];
-			this.writeFastaFile(id, seqDNA);
+			this.writeFastaFile(id, seqDNA, 1);
 		}
 	}
 	
@@ -85,9 +80,8 @@ public class OutputFasta {
 	 * @param id
 	 * @param seqDNA
 	 */
-	public void writeFastaFile(String id, String seqDNA){
+	public void writeFastaFile(String id, String seqDNA, int srsSize){
 		try {
-			int srsSize = Integer.parseInt(prop.getProperty("srs.quantity"));
 			if (srsSize > 1){
 				
 				String[] brokenStr = id.split(">");

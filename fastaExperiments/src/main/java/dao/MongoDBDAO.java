@@ -101,7 +101,7 @@ public class MongoDBDAO {
 	 * @param collection
 	 * @throws IOException
 	 */
-	public void findByCollection(String fileName, int repeat) throws IOException{
+	public void findByCollection(String fileName, int repeat, int srsSize) throws IOException{
 		OutputFasta outputFasta = new OutputFasta();
 		int numOfLines = this.getNumberOfLines(fileName);
 		this.dbCollection = this.mongoDBCreate.getCollection(fileName);
@@ -110,29 +110,7 @@ public class MongoDBDAO {
 			DBCursor cursorFind = this.dbCollection.find();
 			while (cursorFind.hasNext()) {
 				BasicDBObject obj = (BasicDBObject) cursorFind.next();
-				outputFasta.writeFastaFile(obj.getString("idSeq"), obj.getString("seqDna"));
-			}
-		}else{
-			int numOfRecords = 0;
-			int numParts = numOfLines/500000;
-			for (int i = 0; i < numParts; i++) {
-				
-				if (i == (numParts - 1)){
-					DBCursor cursorFind = this.dbCollection.find().skip(numOfRecords).limit(numOfLines);
-					while (cursorFind.hasNext()) {
-						BasicDBObject obj = (BasicDBObject) cursorFind.next();
-						outputFasta.writeFastaFile(obj.getString("idSeq"), obj.getString("seqDna"));
-					}
-
-				}else{
-					DBCursor cursorFind = this.dbCollection.find().skip(numOfRecords).limit(500000);
-					while (cursorFind.hasNext()) {
-						BasicDBObject obj = (BasicDBObject) cursorFind.next();
-						outputFasta.writeFastaFile(obj.getString("idSeq"), obj.getString("seqDna"));
-					}
-				}
-				numOfRecords += 500000;
-				System.out.println("* Registros escritos: "+numOfRecords+"/"+numOfLines);
+				outputFasta.writeFastaFile(obj.getString("idSeq"), obj.getString("seqDna"), srsSize);
 			}
 		}
 		outputFasta.closeFastaFile();

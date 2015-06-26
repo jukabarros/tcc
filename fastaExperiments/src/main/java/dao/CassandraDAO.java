@@ -21,6 +21,7 @@ public class CassandraDAO {
 	private String query;
 	private String keyspace;
 	private CassandraCreate cassandraCreate;
+	PreparedStatement statement;
 	
 	public CassandraDAO() throws IOException {
 		super();
@@ -30,6 +31,7 @@ public class CassandraDAO {
 		Properties prop = ReadProperties.getProp();
 		this.keyspace =  prop.getProperty("cassandra.keyspace");
 		this.cassandraCreate = new CassandraCreate();
+		this.statement = null;
 	}
 	
 	public void beforeExecuteQuery(){
@@ -53,18 +55,29 @@ public class CassandraDAO {
 	/**
 	 * Insere o conteudo do arquivo fasta na tabela referente ao arquivo
 	 * essa tabela possui o mesmo nome do arquivo
-	 * @param table
 	 * @param id
 	 * @param seqDna
 	 * @param line
 	 */
-	public void insertData(String table, String idSeq, String seqDna, int line){
+	public void insertData(String idSeq, String seqDna, int line){
+		try{
+			BoundStatement boundStatement = new BoundStatement(this.statement);
+			this.session.execute(boundStatement.bind(idSeq, seqDna, line));
+			
+		}catch (Exception e){
+			System.out.println("Erro ao executar a query: :("+e.getMessage());
+		}
+	}
+	
+	/**
+	 * Prepara a query para inserir grandes massas de dados
+	 * @param table
+	 */
+	public void prepareInsert(String table){
 		try{
 			String tableName = table.replace(".", "___");
 			this.query = "INSERT INTO "+tableName+" (id_seq, seq_dna, line) VALUES (?, ?, ?);";
-			PreparedStatement statement = this.session.prepare(query);
-			BoundStatement boundStatement = new BoundStatement(statement);
-			this.session.execute(boundStatement.bind(idSeq, seqDna, line));
+			this.statement = this.session.prepare(query);
 			
 		}catch (Exception e){
 			System.out.println("Erro ao executar a query: :("+e.getMessage());
@@ -124,7 +137,7 @@ public class CassandraDAO {
 	 * @return
 	 * @throws IOException 
 	 */
-	public void findByFileName(String fileName, int repeat) throws IOException{
+	public void findByFileName(String fileName, int repeat, int srsSize) throws IOException{
 		this.beforeExecuteQuery();
 		this.query = "SELECT * FROM fasta_info WHERE file_name = ?;";
 		PreparedStatement statement = this.session.prepare(query);
@@ -138,12 +151,12 @@ public class CassandraDAO {
 			}
 			String tableName = fileName.replace(".", "___");
 			int numOfLines = row.getInt("num_lines");
-			this.extractFastaContent(tableName, numOfLines, repeat);
+			this.extractFastaContent(tableName, numOfLines, repeat, srsSize);
 		}
 		this.afterExecuteQuery();
 	}
 	
-	public void extractFastaContent(String table, int numOfLines, int repeat) throws IOException{
+	public void extractFastaContent(String table, int numOfLines, int repeat, int srsSize) throws IOException{
 		OutputFasta outputFasta = new OutputFasta();
 		String fileName = table.replace("___", ".");
 		System.out.println("** Criando o arquivo "+fileName);
@@ -156,7 +169,7 @@ public class CassandraDAO {
 			ResultSet results = this.session.execute(this.query);
 			int line = 0;
 			for (Row row : results) {
-				outputFasta.writeFastaFile(row.getString("id_seq"), row.getString("seq_dna"));
+				outputFasta.writeFastaFile(row.getString("id_seq"), row.getString("seq_dna"), srsSize);
 				if (line%1000000 == 0){
 					System.out.println("* Registros escritos: "+line+"/"+numOfLines);
 				}

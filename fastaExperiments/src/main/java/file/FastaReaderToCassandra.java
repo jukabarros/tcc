@@ -86,7 +86,7 @@ public class FastaReaderToCassandra {
 		this.bwCassandra.write("****** EXTRAÇÃO ******\n");
 		for (int i = 0; i < this.allFilesNames.size(); i++) {
 			long startTime = System.currentTimeMillis();
-			this.dao.findByFileName(this.allFilesNames.get(i), repeat);
+			this.dao.findByFileName(this.allFilesNames.get(i), repeat, srsSize);
 			long endTime = System.currentTimeMillis();
 
 			String timeExecutionSTR = this.calcTimeExecution(startTime, endTime);
@@ -267,6 +267,8 @@ public class FastaReaderToCassandra {
 			String idSeq = "";
 			String seqDNA = "";
 			this.dao.beforeExecuteQuery();
+			this.dao.prepareInsert(fastaFileName);
+			int allSrsSize = srsSize*2;
 			while ((line = br.readLine()) != null) {
 				numOfLine++;
 				this.allLines++;
@@ -277,14 +279,14 @@ public class FastaReaderToCassandra {
 				}else if (numOfLine > 1){
 					seqDNA += brokenFasta[0];
 				}
-				if (numOfLine%srsSize == 0){
-					this.dao.insertData(fastaFileName, idSeq, seqDNA, this.lineNumber/2);
+				if (numOfLine%allSrsSize == 0){
+					this.dao.insertData(idSeq, seqDNA, this.lineNumber/2);
 					idSeq = "";
 					seqDNA = "";
-				}
-				// Printando a cada 500 000 registro inseridos
-				if (this.lineNumber%1000000 == 0){
-					System.out.println("Quantidade de registros inseridos: "+this.lineNumber/2);
+					// Printando a cada 500 000 registro inseridos
+					if (this.lineNumber%1000000 == 0){
+						System.out.println("Quantidade de registros inseridos: "+this.lineNumber/2);
+					}
 				}
 			}
 			this.dao.afterExecuteQuery();

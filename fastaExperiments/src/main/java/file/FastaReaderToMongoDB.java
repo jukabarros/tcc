@@ -88,7 +88,7 @@ public class FastaReaderToMongoDB {
 		this.bwMongoDB.write("****** EXTRAÇÃO ******\n");
 		for (int i = 0; i < this.allFilesNames.size(); i++) {
 			long startTime = System.currentTimeMillis();
-			this.dao.findByCollection(this.allFilesNames.get(i), repeat);
+			this.dao.findByCollection(this.allFilesNames.get(i), repeat, srsSize);
 			long endTime = System.currentTimeMillis();
 
 			String timeExecutionSTR = this.calcTimeExecution(startTime, endTime);
@@ -277,6 +277,7 @@ public class FastaReaderToMongoDB {
 			br = new BufferedReader(new FileReader(fastaFile));
 			String idSeq = "";
 			String seqDNA = "";
+			int allSrsSize = srsSize * 2;
 			while ((line = br.readLine()) != null) {
 				numOfLine++;
 				this.allLines++;
@@ -287,7 +288,7 @@ public class FastaReaderToMongoDB {
 				}else if (numOfLine > 1){
 					seqDNA += brokenFasta[0];
 				}
-				if (numOfLine%srsSize == 0){
+				if (numOfLine%allSrsSize == 0){
 					this.dao.insertData(idSeq, seqDNA, this.lineNumber/2);
 					idSeq = "";
 					seqDNA = "";

@@ -83,7 +83,7 @@ public class Application {
 				
 			}else if(insertData.equals("YES")){
 				for (int i = 1; i <= numOfRepeat; i++) {
-					
+				
 				CassandraCreate.main(null);
 				System.out.println("***************** Repetição: "+i);
 				if (insertAndSearch.equals("YES")){
@@ -101,7 +101,7 @@ public class Application {
 				CassandraDAO dao = new CassandraDAO();
 				if (extractData.equals("YES")){
 					System.out.println("\n**** Extraindo o conteudo de "+fileNameOutput);
-					dao.findByFileName("cabra6_qv15_solid_unribo.fa", 0);
+					dao.findByFileName("cabra6_qv15_solid_unribo.fa", 0, srsSize);
 				}else{
 					System.out.println("\n**** Consultando por id de sequencia: "+idSeqDNA);
 					dao.findByID(idSeqDNA);
@@ -138,7 +138,7 @@ public class Application {
 				MongoDBDAO dao = new MongoDBDAO();
 				if (extractData.equals("YES")){
 					System.out.println("\n**** Extraindo o conteudo de "+fileNameOutput);
-					dao.findByCollection(fileNameOutput, 0);
+					dao.findByCollection(fileNameOutput, 0, srsSize);
 				}else{
 					System.out.println("\n**** Consultando por id de sequencia: "+idSeqDNA);
 					dao.findByID(idSeqDNA);
@@ -175,7 +175,7 @@ public class Application {
 				MySQLDAO dao = new MySQLDAO();
 				if (extractData.equals("YES")){
 					System.out.println("\n**** Extraindo o conteudo de "+fileNameOutput);
-					dao.findByFilename(fileNameOutput, 0);
+					dao.findByFilename(fileNameOutput, 0, srsSize);
 				}else{
 					System.out.println("\n**** Consultando por id de sequencia: "+idSeqDNA);
 					dao.findByID(idSeqDNA);
