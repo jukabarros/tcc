@@ -3,6 +3,7 @@ package dao;
 import java.io.IOException;
 import java.util.Properties;
 
+import com.datastax.driver.core.BatchStatement;
 import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
@@ -61,8 +62,11 @@ public class CassandraDAO {
 	 */
 	public void insertData(String idSeq, String seqDna, int line){
 		try{
-			BoundStatement boundStatement = new BoundStatement(this.statement);
-			this.session.execute(boundStatement.bind(idSeq, seqDna, line));
+//			BoundStatement boundStatement = new BoundStatement(this.statement);
+			BatchStatement batch = new BatchStatement();
+			batch.add(this.statement.bind(idSeq, seqDna, line));
+//			this.session.execute(boundStatement.bind(idSeq, seqDna, line));
+			this.session.execute(batch);
 			
 		}catch (Exception e){
 			System.out.println("Erro ao executar a query: :("+e.getMessage());
@@ -96,7 +100,7 @@ public class CassandraDAO {
 		try{
 			this.beforeExecuteQuery();
 			this.query = "INSERT INTO fasta_info (file_name, size, comment, num_lines) VALUES (?, ?, ?, 0);";
-			PreparedStatement statement = this.session.prepare(query);
+			this.statement = this.session.prepare(query);
 			BoundStatement boundStatement = new BoundStatement(statement);
 			this.session.execute(boundStatement.bind(fileName, size, comment));
 			this.afterExecuteQuery();
@@ -118,7 +122,7 @@ public class CassandraDAO {
 		try{
 			this.beforeExecuteQuery();
 			this.query = "UPDATE fasta_info SET num_lines = ? WHERE file_name = ?;";
-			PreparedStatement statement = this.session.prepare(query);
+			this.statement = this.session.prepare(query);
 			BoundStatement boundStatement = new BoundStatement(statement);
 			this.session.execute(boundStatement.bind(numOfLines, fileName));
 			this.afterExecuteQuery();
@@ -140,7 +144,7 @@ public class CassandraDAO {
 	public void findByFileName(String fileName, int repeat, int srsSize) throws IOException{
 		this.beforeExecuteQuery();
 		this.query = "SELECT * FROM fasta_info WHERE file_name = ?;";
-		PreparedStatement statement = this.session.prepare(query);
+		this.statement = this.session.prepare(query);
 		BoundStatement boundStatement = new BoundStatement(statement);
 		ResultSet results = this.session.execute(boundStatement.bind(fileName));
 	
@@ -167,6 +171,9 @@ public class CassandraDAO {
 
 			this.query = "SELECT * FROM "+table;
 			ResultSet results = this.session.execute(this.query);
+//			SimpleStatement simpleStatement = new SimpleStatement("SELECT * FROM "+table);
+//			simpleStatement.setFetchSize(500000);
+//			ResultSet results = this.session.execute(this.query);
 			int line = 0;
 			for (Row row : results) {
 				outputFasta.writeFastaFile(row.getString("id_seq"), row.getString("seq_dna"), srsSize);
@@ -194,7 +201,7 @@ public class CassandraDAO {
 			String tableName = row0.getString("file_name").replace(".", "___");
 			
 			this.query = "SELECT * FROM "+tableName+" WHERE id_seq = ?;";
-			PreparedStatement statement = this.session.prepare(this.query);
+			this.statement = this.session.prepare(this.query);
 			BoundStatement boundStatement = new BoundStatement(statement);
 			ResultSet results = this.session.execute(boundStatement.bind(idSeq));
 			for (Row row : results) {

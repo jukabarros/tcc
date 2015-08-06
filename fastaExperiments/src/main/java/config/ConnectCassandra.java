@@ -21,6 +21,7 @@ public class ConnectCassandra {
 			this.cluster = Cluster.builder()
 			  .addContactPoint(node)
 			  .build();
+			this.cluster.getConfiguration().getSocketOptions().setReadTimeoutMillis(500000);
 			
 		}catch (Exception e){
 			System.out.println("Erro ao se conectar com o BD: "+e.getMessage());

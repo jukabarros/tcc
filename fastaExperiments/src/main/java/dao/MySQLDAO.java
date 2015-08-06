@@ -21,29 +21,36 @@ public class MySQLDAO{
 	private Connection conn;
 	
 	private PreparedStatement queryExec;
+	// variavel que insere a cada 500 mil registros
+	private int insertAll;
 	
 	public MySQLDAO() throws IOException {
 		this.query = null;
 		this.conn = null;
-		this.query = null;
+		this.queryExec = null;
+		this.insertAll = 0;
 	}
 	
 	/*
 	 * Metodo before e after sao usados para
 	 * abrir e fechar conexao
 	 */
-	public void beforeExecuteQuery(){
+	public void beforeExecuteQuery() throws SQLException{
 		Properties prop;
 		try {
 			prop = ReadProperties.getProp();
 			String database = prop.getProperty("mysql.db"); 
 			this.conn = new ConnectMySQL().connectMysql(database);
+			this.conn.setAutoCommit(false);
+			this.insertAll = 0;
 		} catch (IOException e) {
 			System.out.println("Erro na execução da query: "+e.getMessage());
 		}
 	}
 	
 	public void afterExecuteQuery() throws SQLException{
+		this.insertAll = 0;
+		this.conn.commit();
 		this.queryExec.close();
 		this.conn.close();
 	}
@@ -76,13 +83,16 @@ public class MySQLDAO{
 	
 	public void insertFastaCollect(String idSeq, String seqDNA, int line, int fastaInfo) throws SQLException{
 		try{
-			
 			this.queryExec.setString(1, idSeq);
 			this.queryExec.setString(2, seqDNA);
 			this.queryExec.setInt(3, line);
 			this.queryExec.setInt(4, fastaInfo);
-			this.queryExec.execute();
-			
+			this.queryExec.addBatch();
+			this.queryExec.executeBatch();
+			this.insertAll++;
+			if (this.insertAll%500000==0){
+				this.conn.commit();
+			}
 			
 		}catch (Exception e){
 			System.out.println("Erro ao inserir o registro: :( \n"+e.getMessage());
@@ -198,11 +208,11 @@ public class MySQLDAO{
 			for (int i = 0; i < numParts; i++) {
 				if (i == (numParts - 1)){
 					this.query = "SELECT TRIM(id_seq), TRIM(seq_dna) FROM "
-							+ "fasta_collect WHERE fasta_info = ? LIMIT "+numOfRecords+", "+numOfLine+";";
+							+ "fasta_collect WHERE fasta_info = ? AND line LIMIT "+numOfRecords+","+numOfLine+";";
 					
 				}else{
 					this.query = "SELECT TRIM(id_seq), TRIM(seq_dna) FROM "
-							+ "fasta_collect WHERE fasta_info = ? LIMIT "+numOfRecords+", 500000;";
+							+ "fasta_collect WHERE fasta_info = ? AND line LIMIT "+numOfRecords+", 500000;";
 				}
 				numOfRecords += 500000;
 				this.queryExec = this.conn.prepareStatement(this.query);
@@ -213,7 +223,7 @@ public class MySQLDAO{
 				}
 				System.out.println("* Registros escritos: "+numOfRecords+"/"+numOfLine);
 
-				results = null;
+				results.close();
 				this.query = null;
 			}
 		}

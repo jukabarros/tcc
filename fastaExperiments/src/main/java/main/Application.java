@@ -35,9 +35,9 @@ public class Application {
 	public static void main(String[] args) throws IOException, SQLException, InterruptedException {
 		Application app = new Application();
 		String fastaDirectory = null;
-		String fileNameOutput = null;
 		int srsSize = 0;
 		Properties prop = ReadProperties.getProp();
+		String fileNameOutput = prop.getProperty("file.name.output");
 		int numOfRepeat = Integer.parseInt(prop.getProperty("num.repeat"));
 		int numOfArgs = args.length;
 		switch (numOfArgs) {
@@ -79,6 +79,7 @@ public class Application {
 					CassandraCreate.main(null);
 					FastaReaderToCassandra frToCassandra = new FastaReaderToCassandra();
 					frToCassandra.doAllExperiment(fastaDirectory, i, srsSize);
+					Thread.sleep(45000);
 				}
 				
 			}else if(insertData.equals("YES")){
@@ -101,7 +102,7 @@ public class Application {
 				CassandraDAO dao = new CassandraDAO();
 				if (extractData.equals("YES")){
 					System.out.println("\n**** Extraindo o conteudo de "+fileNameOutput);
-					dao.findByFileName("cabra6_qv15_solid_unribo.fa", 0, srsSize);
+					dao.findByFileName(fileNameOutput, 0, srsSize);
 				}else{
 					System.out.println("\n**** Consultando por id de sequencia: "+idSeqDNA);
 					dao.findByID(idSeqDNA);

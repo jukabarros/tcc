@@ -58,8 +58,8 @@ public class FastaReaderToMySQL {
 	 * @throws IOException
 	 */
 	public void doAllExperiment(String fastaFilePath, int repeat, int srsSize) throws SQLException, IOException{
-		System.out.println("\n\n** Iniciando a Inserção dos arquivos");
-		this.readFastaDirectory(fastaFilePath, repeat, srsSize);
+//		System.out.println("\n\n** Iniciando a Inserção dos arquivos");
+//		this.readFastaDirectory(fastaFilePath, repeat, srsSize);
 		
 		List<String> idSequences = new ArrayList<String>();
 		idSequences.add(">557_2036_1480_F3"); //cabra4

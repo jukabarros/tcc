@@ -13,6 +13,7 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
 import dao.CassandraDAO;
 
 public class FastaReaderToCassandra {
@@ -55,10 +56,11 @@ public class FastaReaderToCassandra {
 	 * @param srsSize
 	 * @throws SQLException
 	 * @throws IOException
+	 * @throws InterruptedException 
 	 */
-	public void doAllExperiment(String fastaFilePath, int repeat, int srsSize) throws SQLException, IOException{
-		System.out.println("\n\n** Iniciando a Inserção dos arquivos");
-		this.readFastaDirectory(fastaFilePath, repeat, srsSize);
+	public void doAllExperiment(String fastaFilePath, int repeat, int srsSize) throws SQLException, IOException, InterruptedException{
+//		System.out.println("\n\n** Iniciando a Inserção dos arquivos");
+//		this.readFastaDirectory(fastaFilePath, repeat, srsSize);
 		
 		List<String> idSequences = new ArrayList<String>();
 		idSequences.add(">557_2036_1480_F3"); //cabra4
@@ -73,9 +75,9 @@ public class FastaReaderToCassandra {
 			long startTime = System.currentTimeMillis();
 			this.dao.findByID(idSequences.get(i));
 			long endTime = System.currentTimeMillis();
-
 			String timeExecutionSTR = this.calcTimeExecution(startTime, endTime);
 			this.bwCassandra.write(idSequences.get(i) + '\t' + "tempo: "+'\t'+timeExecutionSTR+'\n');
+			
 		}
 		this.bwCassandra.close();
 		this.fwCassandra = null;
@@ -85,6 +87,7 @@ public class FastaReaderToCassandra {
 		this.createExtractTimeTxt(repeat,srsSize);
 		this.bwCassandra.write("****** EXTRAÇÃO ******\n");
 		for (int i = 0; i < this.allFilesNames.size(); i++) {
+			Thread.sleep(45000);
 			long startTime = System.currentTimeMillis();
 			this.dao.findByFileName(this.allFilesNames.get(i), repeat, srsSize);
 			long endTime = System.currentTimeMillis();
